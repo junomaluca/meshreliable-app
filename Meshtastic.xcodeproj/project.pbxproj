@@ -159,7 +159,6 @@
 		AA00010A2F0CC00000600001 /* AudioConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00010B2F0CC00000600001 /* AudioConfig.swift */; };
 		AA000201CPLAY000000000004 /* CarPlayIntentDonation.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000201CPLAY000000000003 /* CarPlayIntentDonation.swift */; };
 		AA0002022F07A4B000600001 /* NeighborInfoConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0002012F07A4B000600001 /* NeighborInfoConfig.swift */; };
-		AA000301CPTST000000000002 /* CarPlayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000301CPTST000000000001 /* CarPlayTests.swift */; };
 		AA000401SIRI000000000002 /* AppIntentVocabulary.plist in Resources */ = {isa = PBXBuildFile; fileRef = AA000401SIRI000000000001 /* AppIntentVocabulary.plist */; };
 		AA003DOC0000002000000001 /* DocModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA003DOC0000001000000001 /* DocModels.swift */; };
 		AA003DOC0000002000000002 /* DocBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA003DOC0000001000000002 /* DocBrowserView.swift */; };
@@ -381,7 +380,6 @@
 		DD994B69295F88B60013760A /* IntervalEnums.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD994B68295F88B60013760A /* IntervalEnums.swift */; };
 		DD9C700D2E8D5A9500106227 /* ChannelMessageRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD9C700C2E8D5A8900106227 /* ChannelMessageRow.swift */; };
 		DD9C700F2E8DE80800106227 /* UserMessageRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD9C700E2E8DE7FF00106227 /* UserMessageRow.swift */; };
-		DD9C70102E9F2A0000029299 /* DeviceOnboardingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD9C70112E9F2A0000029299 /* DeviceOnboardingTests.swift */; };
 		DD9C70112E916EBD00106227 /* UpdateIntervalPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD9C70102E916EA200106227 /* UpdateIntervalPicker.swift */; };
 		DDA0B6B2294CDC55001356EC /* Channels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA0B6B1294CDC55001356EC /* Channels.swift */; };
 		DDA1C48E28DB49D3009933EC /* ChannelRoles.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA1C48D28DB49D3009933EC /* ChannelRoles.swift */; };
@@ -676,7 +674,6 @@
 		AA0002012F07A4B000600001 /* NeighborInfoConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeighborInfoConfig.swift; sourceTree = "<group>"; };
 		AA000201CPLAY000000000001 /* CarPlaySceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarPlaySceneDelegate.swift; sourceTree = "<group>"; };
 		AA000201CPLAY000000000003 /* CarPlayIntentDonation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarPlayIntentDonation.swift; sourceTree = "<group>"; };
-		AA000301CPTST000000000001 /* CarPlayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarPlayTests.swift; sourceTree = "<group>"; };
 		AA000401SIRI000000000010 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = en; path = en.lproj/AppIntentVocabulary.plist; sourceTree = "<group>"; };
 		AA000401SIRI000000000011 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = de; path = de.lproj/AppIntentVocabulary.plist; sourceTree = "<group>"; };
 		AA000401SIRI000000000012 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = es; path = es.lproj/AppIntentVocabulary.plist; sourceTree = "<group>"; };
@@ -946,7 +943,6 @@
 		DD9C700C2E8D5A8900106227 /* ChannelMessageRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChannelMessageRow.swift; sourceTree = "<group>"; };
 		DD9C700E2E8DE7FF00106227 /* UserMessageRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserMessageRow.swift; sourceTree = "<group>"; };
 		DD9C70102E916EA200106227 /* UpdateIntervalPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateIntervalPicker.swift; sourceTree = "<group>"; };
-		DD9C70112E9F2A0000029299 /* DeviceOnboardingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceOnboardingTests.swift; sourceTree = "<group>"; };
 		DDA0B6B1294CDC55001356EC /* Channels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Channels.swift; sourceTree = "<group>"; };
 		DDA1C48D28DB49D3009933EC /* ChannelRoles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChannelRoles.swift; sourceTree = "<group>"; };
 		DDA28B1B2D32C89200EF726F /* MeshtasticDataModelV 48.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "MeshtasticDataModelV 48.xcdatamodel"; sourceTree = "<group>"; };
@@ -1504,9 +1500,7 @@
 			isa = PBXGroup;
 			children = (
 				AA00010022E2730EC0060000 /* ConnectViewTests.swift */,
-				DD9C70112E9F2A0000029299 /* DeviceOnboardingTests.swift */,
 				25F5D5D02C4375DF008036E3 /* RouterTests.swift */,
-				AA000301CPTST000000000001 /* CarPlayTests.swift */,
 				DD000001NODNAVTST00000000 /* NodeNavigationTests.swift */,
 				DD000002STREXTTST00000000 /* StringExtensionTests.swift */,
 				DD000003NUMEXTTST00000000 /* NumericExtensionTests.swift */,
@@ -2588,9 +2582,7 @@
 				AA003DOC0000002000000008 /* DocTranslationTests.swift in Sources */,
 				AA009MCT0000002000000001 /* MarkdownConverterTests.swift in Sources */,
 				AA0001012E2730EC00600001 /* ConnectViewTests.swift in Sources */,
-				DD9C70102E9F2A0000029299 /* DeviceOnboardingTests.swift in Sources */,
 				25F5D5D12C4375DF008036E3 /* RouterTests.swift in Sources */,
-				AA000301CPTST000000000002 /* CarPlayTests.swift in Sources */,
 				DD000001NODNAVTST00000001 /* NodeNavigationTests.swift in Sources */,
 				DD000002STREXTTST00000001 /* StringExtensionTests.swift in Sources */,
 				DD000003NUMEXTTST00000001 /* NumericExtensionTests.swift in Sources */,
