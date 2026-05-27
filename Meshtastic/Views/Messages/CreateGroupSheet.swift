@@ -30,6 +30,7 @@ struct CreateGroupSheet: View {
 			Form {
 				Section("Group Name") {
 					TextField("Enter group name", text: $groupName)
+						.accessibilityIdentifier("groupNameField")
 				}
 
 				Section("Members (\(selectedNodes.count) selected)") {

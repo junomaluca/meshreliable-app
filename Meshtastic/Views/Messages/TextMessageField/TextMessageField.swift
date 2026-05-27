@@ -77,18 +77,21 @@ struct TextMessageField: View {
 #endif
 							}
 							.foregroundColor(.primary)
+							.accessibilityIdentifier("messageTextField")
 						if typingMessage.isEmpty {
 							Button(action: { showVoiceMemoRecorder = true }) {
 								Image(systemName: "mic.circle.fill")
 									.font(.largeTitle)
 									.foregroundColor(.accentColor)
 							}
+							.accessibilityIdentifier("voiceMemoButton")
 						} else {
 							Button(action: sendMessage) {
 								Image(systemName: "arrow.up.circle.fill")
 									.font(.largeTitle)
 									.foregroundColor(.accentColor)
 							}
+							.accessibilityIdentifier("sendMessageButton")
 						}
 					}
 					.padding(15)
@@ -236,18 +239,21 @@ private struct FormattingComposeArea: View {
 					.focused($isFocused)
 					.multilineTextAlignment(.leading)
 					.foregroundColor(.primary)
+					.accessibilityIdentifier("messageTextField")
 				if typingMessage.isEmpty {
 					Button(action: onVoiceMemo) {
 						Image(systemName: "mic.circle.fill")
 							.font(.largeTitle)
 							.foregroundColor(.accentColor)
 					}
+					.accessibilityIdentifier("voiceMemoButton")
 				} else {
 					Button(action: onSend) {
 						Image(systemName: "arrow.up.circle.fill")
 							.font(.largeTitle)
 							.foregroundColor(.accentColor)
 					}
+					.accessibilityIdentifier("sendMessageButton")
 				}
 			}
 			.padding(15)

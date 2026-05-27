@@ -242,6 +242,7 @@ struct VoiceMemoRecorder: View {
 						} label: {
 							RecordButtonLabel(isRecording: false)
 						}
+						.accessibilityIdentifier("recordButton")
 						Text("Tap to start recording")
 							.font(.caption)
 							.foregroundStyle(.secondary)
@@ -252,6 +253,7 @@ struct VoiceMemoRecorder: View {
 						} label: {
 							RecordButtonLabel(isRecording: true)
 						}
+						.accessibilityIdentifier("recordButton")
 						Text("Tap to stop")
 							.font(.caption)
 							.foregroundStyle(.secondary)

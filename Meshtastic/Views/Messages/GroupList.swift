@@ -44,6 +44,7 @@ struct GroupList: View {
 						} label: {
 							Label("Create Group", systemImage: "plus.circle.fill")
 						}
+						.accessibilityIdentifier("createGroupButton")
 						.buttonStyle(.borderedProminent)
 
 						Button {
@@ -51,6 +52,7 @@ struct GroupList: View {
 						} label: {
 							Label("Join Group", systemImage: "person.badge.plus")
 						}
+						.accessibilityIdentifier("joinGroupButton")
 						.buttonStyle(.bordered)
 					}
 				}
