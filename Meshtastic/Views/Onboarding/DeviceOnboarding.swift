@@ -1,5 +1,7 @@
 import CoreBluetooth
+#if canImport(Intents)
 import Intents
+#endif
 import OSLog
 import SwiftUI
 import Foundation
@@ -11,7 +13,6 @@ struct DeviceOnboarding: View {
 		case location
 		case bluetooth
 		case localNetwork
-		case siri
 	}
 	
 	@EnvironmentObject var accessoryManager: AccessoryManager
@@ -64,12 +65,7 @@ struct DeviceOnboarding: View {
 							title: String(localized: "Local Network Access"),
 							subtitle: String(localized: "Connect to nodes on your local Wi-Fi network.")
 						)
-						makeRow(
-							icon: "car.fill",
-							title: String(localized: "Siri & CarPlay"),
-							subtitle: String(localized: "Send and receive Meshtastic messages hands-free using Siri and CarPlay.")
-						)
-					}
+						}
 					.padding(.horizontal)
 					.padding(.bottom)
 				}
@@ -320,64 +316,6 @@ struct DeviceOnboarding: View {
 		}
 	}
 	
-	var siriView: some View {
-		VStack {
-			ScrollView(.vertical) {
-				VStack {
-					Text("Siri, Shortcuts & CarPlay")
-						.font(.largeTitle.bold())
-						.multilineTextAlignment(.center)
-						.fixedSize(horizontal: false, vertical: true)
-				}
-				.padding(.horizontal)
-				VStack(alignment: .leading, spacing: 16) {
-					Text(createSiriString())
-						.font(.body.bold())
-						.multilineTextAlignment(.center)
-						.fixedSize(horizontal: false, vertical: true)
-					makeRow(
-						icon: "car.fill",
-						title: String(localized: "CarPlay Messaging"),
-						subtitle: String(localized: "Read and reply to Meshtastic channel and direct messages directly from your car's display using CarPlay.")
-					)
-					makeRow(
-						icon: "message",
-						title: String(localized: "Send a Group Message"),
-						subtitle: String(localized: "\"Send a Meshtastic group message\" — send a message to a mesh channel.")
-					)
-					makeRow(
-						icon: "bubble",
-						title: String(localized: "Send a Direct Message"),
-						subtitle: String(localized: "\"Send a Meshtastic direct message\" — send a private message to a node.")
-					)
-					makeRow(
-						icon: "power",
-						title: String(localized: "Shut Down / Restart Node"),
-						subtitle: String(localized: "\"Shut down my Meshtastic node\" or \"Restart my Meshtastic node\".")
-					)
-					makeRow(
-						icon: "antenna.radiowaves.left.and.right.slash",
-						title: String(localized: "Disconnect Node"),
-						subtitle: String(localized: "\"Disconnect Meshtastic\" — disconnect from the connected BLE node.")
-					)
-				}
-				.padding()
-			}
-			Spacer()
-			Button {
-				Task {
-					await requestSiriPermissions()
-					await goToNextStep(after: .siri)
-				}
-			} label: {
-				Text("Continue")
-					.frame(maxWidth: 400)
-			}
-			.capsuleButtonStyle()
-			.padding(.bottom)
-		}
-	}
-	
 	var body: some View {
 		NavigationStack(path: $navigationPath) {
 			welcomeView
@@ -391,8 +329,6 @@ struct DeviceOnboarding: View {
 						bluetoothView
 					case .localNetwork:
 						localNetworkView
-					case .siri:
-						siriView
 					}
 				}
 		}
@@ -499,8 +435,6 @@ struct DeviceOnboarding: View {
 		case .bluetooth:
 			return .localNetwork
 		case .localNetwork:
-			return .siri
-		case .siri:
 			return nil
 		}
 	}
@@ -516,7 +450,7 @@ struct DeviceOnboarding: View {
 			locationStatus: locationStatus
 		) {
 			navigationPath.append(next)
-		} else if step == .siri {
+		} else if step == .localNetwork {
 			dismiss()
 		}
 	}
@@ -549,20 +483,11 @@ struct DeviceOnboarding: View {
 		return fullText
 	}
 	
-	func createSiriString() -> AttributedString {
-		var fullText = AttributedString("Meshtastic supports Siri, Shortcuts, and CarPlay so you can send and receive messages hands-free. You can update Siri permissions at any time from settings.")
-		if let range = fullText.range(of: "settings") {
-			fullText[range].link = URL(string: UIApplication.openSettingsURLString)!
-			fullText[range].foregroundColor = .blue
-		}
-		return fullText
-	}
-	
 	// MARK: Permission Checks
 	func requestNotificationsPermissions() async {
 		let center = UNUserNotificationCenter.current()
 		do {
-			let success = try await center.requestAuthorization(options: [.alert, .badge, .sound, .criticalAlert])
+			let success = try await center.requestAuthorization(options: [.alert, .badge, .sound])
 			if success {
 				Logger.services.info("Notification permissions are enabled")
 			} else {
@@ -575,12 +500,11 @@ struct DeviceOnboarding: View {
 	
 	func requestLocationPermissions() async {
 		let currentStatus = LocationsHandler.shared.manager.authorizationStatus
-		let locationServicesEnabled = CLLocationManager.locationServicesEnabled()
 
 		// On Mac Catalyst, if location services are disabled or already denied/restricted,
 		// the system won't show a permission prompt. Open System Settings instead.
 		#if targetEnvironment(macCatalyst)
-		if !locationServicesEnabled || currentStatus == .denied || currentStatus == .restricted {
+		if currentStatus == .denied || currentStatus == .restricted {
 			Logger.services.info("Location services disabled or denied on Mac, opening System Settings")
 			if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_LocationServices") {
 				await UIApplication.shared.open(url)
@@ -590,7 +514,7 @@ struct DeviceOnboarding: View {
 		}
 		#endif
 
-		if !locationServicesEnabled || currentStatus == .denied || currentStatus == .restricted {
+		if currentStatus == .denied || currentStatus == .restricted {
 			Logger.services.info("Location services not available, opening app settings")
 			if let url = URL(string: UIApplication.openSettingsURLString) {
 				await UIApplication.shared.open(url)
@@ -615,32 +539,6 @@ struct DeviceOnboarding: View {
 		_ = await BluetoothAuthorizationHelper.requestBluetoothAuthorization()
 	}
 	
-	func requestSiriPermissions() async {
-		if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {
-			Logger.services.info("Skipping Siri permission request while running tests")
-			return
-		}
-
-		#if targetEnvironment(macCatalyst)
-		// Siri authorization prompt is not available on Mac Catalyst
-		Logger.services.info("Siri permissions not available on Mac Catalyst")
-		#else
-		await withCheckedContinuation { continuation in
-			INPreferences.requestSiriAuthorization { status in
-				switch status {
-				case .authorized:
-					Logger.services.info("Siri permissions are enabled")
-				case .denied:
-					Logger.services.info("Siri permissions denied")
-				default:
-					Logger.services.info("Siri permissions status: \(status.rawValue)")
-				}
-				continuation.resume()
-			}
-		}
-		#endif
-	}
-
 }
 
 #Preview {

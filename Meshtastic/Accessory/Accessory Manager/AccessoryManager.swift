@@ -601,7 +601,6 @@ class AccessoryManager: ObservableObject, MqttClientProxyManagerDelegate {
 					Logger.mesh.info("🕸️ MESH PACKET received for Remote Hardware App UNHANDLED \((try? decodedInfo.packet.jsonString()) ?? "JSON Decode Failure", privacy: .public)")
 				case .positionApp:
 					await MeshPackets.shared.upsertPositionPacket(packet: packet)
-					WatchSessionManager.shared.sendNodesToWatch()
 					// Broadcast position to TAK clients
 					if let position = try? Position(serializedBytes: data.payload) {
 						Logger.tak.debug("Position received, calling broadcast")
@@ -684,7 +683,8 @@ class AccessoryManager: ObservableObject, MqttClientProxyManagerDelegate {
 				case .zpsApp:
 					Logger.mesh.info("🕸️ MESH PACKET received for Zero Positioning System App UNHANDLED")
 				case .privateApp:
-					Logger.mesh.info("🕸️ MESH PACKET received for Private App UNHANDLED UNHANDLED")
+					Logger.mesh.info("🕸️ MESH PACKET received for Private App - routing to MeshReliableService")
+					MeshReliableService.shared.handleIncomingPacket(packet)
 				case .atakForwarder:
 					handleATAKForwarderPacket(packet)
 				case .simulatorApp:
@@ -692,7 +692,8 @@ class AccessoryManager: ObservableObject, MqttClientProxyManagerDelegate {
 				case .storeForwardPlusplusApp:
 					Logger.mesh.info("🕸️ MESH PACKET received for SFPP App UNHANDLED UNHANDLED")
 				case .audioApp:
-					Logger.mesh.info("🕸️ MESH PACKET received for Audio App UNHANDLED UNHANDLED")
+					Logger.mesh.info("🕸️ MESH PACKET received for Audio App - routing to MeshReliableService")
+					MeshReliableService.shared.handleIncomingPacket(packet)
 				case .nodeStatusApp:
 					Logger.mesh.info("🕸️ MESH PACKET received for Node Status App UNHANDLED")
 				case .tracerouteApp:
@@ -725,6 +726,9 @@ class AccessoryManager: ObservableObject, MqttClientProxyManagerDelegate {
 					Logger.mesh.warning("🕸️ MESH PACKET received for Key Verification App UNHANDLED \((try? decodedInfo.packet.jsonString()) ?? "JSON Decode Failure", privacy: .public)")
 				case .cayenneApp:
 					Logger.mesh.info("🕸️ MESH PACKET received Cayenne App UNHANDLED \((try? decodedInfo.packet.jsonString()) ?? "JSON Decode Failure", privacy: .public)")
+				case .groupMessageApp:
+					Logger.mesh.info("🕸️ MESH PACKET received for Group Message App - routing to GroupMessageService")
+					GroupMessageService.shared.handleIncomingPacket(packet)
 				case .groupalarmApp:
 					Logger.mesh.info("🕸️ MESH PACKET received Group Alarm App UNHANDLED \((try? decodedInfo.packet.jsonString()) ?? "JSON Decode Failure", privacy: .public)")
 				case .lorawanBridge:
@@ -810,8 +814,6 @@ class AccessoryManager: ObservableObject, MqttClientProxyManagerDelegate {
 					try context.save()
 					Logger.data.info("💾 [Database] Batch saved all node info after database retrieval")
 
-					// Push updated node data to the companion Watch app
-					WatchSessionManager.shared.sendNodesToWatch()
 				} catch {
 					let nsError = error as NSError
 					Logger.data.error("💥 [Database] Error saving batch node info: \(nsError, privacy: .public)")

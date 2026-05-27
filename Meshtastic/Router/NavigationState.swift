@@ -11,6 +11,9 @@ enum MessagesNavigationState: Hashable {
 		userNum: Int64? = nil,
 		messageId: Int64? = nil
 	)
+	case groupMessages(
+		groupId: UInt32? = nil
+	)
 }
 
 // MARK: Map

@@ -8,9 +8,12 @@
 import SwiftUI
 import CoreLocation
 import Charts
+#if canImport(WeatherKit)
 import WeatherKit
+#endif
 import OSLog
 
+#if canImport(WeatherKit)
 struct NodeWeatherForecastView: View {
 	var location: CLLocation
 
@@ -161,6 +164,15 @@ struct NodeWeatherForecastView: View {
 		])
 	}
 }
+#else
+struct NodeWeatherForecastView: View {
+	var location: CLLocation
+
+	var body: some View {
+		EmptyView()
+	}
+}
+#endif
 
 struct NodeWeatherForecast {
 	struct WeatherEntry: Identifiable {
@@ -212,9 +224,10 @@ struct NodeWeatherForecast {
 	}
 }
 
+#if canImport(WeatherKit)
 struct NodeWeatherForecastView_Previews: PreviewProvider {
 	static var previews: some View {
-		
+
 		if let cl = LocationsHandler.currentLocation {
 			NodeWeatherForecastView(location: CLLocation(latitude: cl.latitude, longitude: cl.longitude) )
 				.aspectRatio(2, contentMode: .fit)
@@ -223,3 +236,4 @@ struct NodeWeatherForecastView_Previews: PreviewProvider {
 		}
 	}
 }
+#endif

@@ -1,13 +1,13 @@
 {
-  "originHash" : "02e9d207c7ae3d3a8b5bd176e842a65b5ef636da7b4f30c3bbebdc7c606b8348",
+  "originHash" : "5416fed8117bc553861ab2642d6881b394287cb2c35f722e756fd14f3d8f593d",
   "pins" : [
     {
       "identity" : "cocoamqtt",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/emqx/CocoaMQTT",
       "state" : {
-        "revision" : "9a756497f412214b9a7e9f40ea908dbd977bfaba",
-        "version" : "2.2.4"
+        "revision" : "69461a4291599711dd4bf386880f670623dca871",
+        "version" : "2.2.5"
       }
     },
     {
@@ -87,8 +87,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-custom-dump",
       "state" : {
-        "revision" : "06c57924455064182d6b217f06ebc05d00cb2990",
-        "version" : "1.5.0"
+        "revision" : "b9b59eb58c946236d6f16305c576ad194c36444e",
+        "version" : "1.6.0"
       }
     },
     {
@@ -105,8 +105,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-protobuf.git",
       "state" : {
-        "revision" : "81558271e243f8f47dfe8e9fdd55f3c2b5413f68",
-        "version" : "1.37.0"
+        "revision" : "f6506eaa86ed2e01cb0ae14a75035b7fdbf0918f",
+        "version" : "1.38.0"
       }
     },
     {
@@ -141,8 +141,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/meshtastic/TAKPacket-SDK.git",
       "state" : {
-        "revision" : "c7faf1f65f723d63b24df310d3db2b5879c561ba",
-        "version" : "0.2.3"
+        "revision" : "838f4333a2e3ec75ac1db7af27790a1fab658b85",
+        "version" : "0.2.6"
       }
     },
     {

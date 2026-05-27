@@ -1,8 +1,11 @@
 import SwiftUI
 import MapKit
+#if canImport(WeatherKit)
 import WeatherKit
+#endif
 import OSLog
 
+#if canImport(WeatherKit)
 struct LocalWeatherConditions: View {
 	@State var location: CLLocation?
 	/// Weather
@@ -37,7 +40,7 @@ struct LocalWeatherConditions: View {
 						PressureCompactWidget(pressure: String(pressure?.value ?? 0.0 / 100), unit: pressure?.unit.symbol ?? "??", low: pressure?.value ?? 0.0 <= 1009.144)
 						WindCompactWidget(speed: windSpeed, gust: windGust, direction: windCompassDirection)
 					}
-					
+
 					HStack {
 						AsyncImage(url: attributionLogo) { image in
 							image
@@ -95,6 +98,15 @@ struct LocalWeatherConditions: View {
 		}
 	}
 }
+#else
+struct LocalWeatherConditions: View {
+	@State var location: CLLocation?
+
+	var body: some View {
+		EmptyView()
+	}
+}
+#endif
 
 /// Magnus Formula
 func calculateDewPoint(temp: Float, relativeHumidity: Float, convertToLocale: Bool = true) -> Double {
@@ -103,11 +115,11 @@ func calculateDewPoint(temp: Float, relativeHumidity: Float, convertToLocale: Bo
 	let alpha = ((a * temp) / (b + temp)) + log(relativeHumidity / 100.0)
 	let dewPoint = (b * alpha) / (a - alpha)
 	let dewPointUnit = Measurement<UnitTemperature>(value: Double(dewPoint), unit: .celsius)
-	
+
 	if !convertToLocale {
 		return Double(dewPoint)
 	}
-	
+
 	// Otherwise convert to locale units, default behavior
 	let locale = NSLocale.current as NSLocale
 	let localeUnit = locale.object(forKey: NSLocale.Key(rawValue: "kCFLocaleTemperatureUnitKey"))
@@ -119,6 +131,8 @@ func calculateDewPoint(temp: Float, relativeHumidity: Float, convertToLocale: Bo
 	return dewPointUnit.converted(to: format).value
 }
 
+#if canImport(WeatherKit)
 #Preview {
 	LocalWeatherConditions(location: CLLocation(latitude: 47.6062, longitude: -122.3321))
 }
+#endif

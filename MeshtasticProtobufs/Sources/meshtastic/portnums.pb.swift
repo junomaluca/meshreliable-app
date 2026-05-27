@@ -255,6 +255,11 @@ public enum PortNum: SwiftProtobuf.Enum, Swift.CaseIterable {
   case atakForwarder // = 257
 
   ///
+  /// MeshReliable Acknowledged Group Messaging
+  /// Custom port for group text messages with per-member ACK tracking
+  case groupMessageApp // = 258
+
+  ///
   /// Currently we limit port nums to no higher than this value
   case max // = 511
   case UNRECOGNIZED(Int)
@@ -302,6 +307,7 @@ public enum PortNum: SwiftProtobuf.Enum, Swift.CaseIterable {
     case 112: self = .groupalarmApp
     case 256: self = .privateApp
     case 257: self = .atakForwarder
+    case 258: self = .groupMessageApp
     case 511: self = .max
     default: self = .UNRECOGNIZED(rawValue)
     }
@@ -346,6 +352,7 @@ public enum PortNum: SwiftProtobuf.Enum, Swift.CaseIterable {
     case .groupalarmApp: return 112
     case .privateApp: return 256
     case .atakForwarder: return 257
+    case .groupMessageApp: return 258
     case .max: return 511
     case .UNRECOGNIZED(let i): return i
     }
@@ -390,6 +397,7 @@ public enum PortNum: SwiftProtobuf.Enum, Swift.CaseIterable {
     .groupalarmApp,
     .privateApp,
     .atakForwarder,
+    .groupMessageApp,
     .max,
   ]
 

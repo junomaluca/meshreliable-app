@@ -14,6 +14,7 @@ struct TextMessageField: View {
 	@State private var typingMessage: String = ""
 	@State private var totalBytes = 0
 	@State private var sendPositionWithMessage = false
+	@State private var showVoiceMemoRecorder = false
 
 	var body: some View {
 		if #available(iOS 18.0, macOS 15.0, *) {
@@ -25,8 +26,13 @@ struct TextMessageField: View {
 				maxbytes: Self.maxbytes,
 				onSend: sendMessage,
 				onAlert: { typingMessage += "🔔 Alert Bell Character! \u{7}" },
-				onRequestPosition: requestPosition
+				onRequestPosition: requestPosition,
+				onVoiceMemo: { showVoiceMemoRecorder = true },
+				destination: destination
 			)
+			.sheet(isPresented: $showVoiceMemoRecorder) {
+				VoiceMemoRecorder(destination: destination)
+			}
 		} else {
 			VStack(spacing: 0) {
 				HStack(alignment: .top) {
@@ -71,7 +77,13 @@ struct TextMessageField: View {
 #endif
 							}
 							.foregroundColor(.primary)
-						if !typingMessage.isEmpty {
+						if typingMessage.isEmpty {
+							Button(action: { showVoiceMemoRecorder = true }) {
+								Image(systemName: "mic.circle.fill")
+									.font(.largeTitle)
+									.foregroundColor(.accentColor)
+							}
+						} else {
 							Button(action: sendMessage) {
 								Image(systemName: "arrow.up.circle.fill")
 									.font(.largeTitle)
@@ -120,7 +132,12 @@ struct TextMessageField: View {
 			Spacer()
 			RequestPositionButton(action: requestPosition)
 			Spacer()
+			VoiceMemoButton(action: { showVoiceMemoRecorder = true })
+			Spacer()
 			TextMessageSize(maxbytes: Self.maxbytes, totalBytes: totalBytes)
+		}
+		.sheet(isPresented: $showVoiceMemoRecorder) {
+			VoiceMemoRecorder(destination: destination)
 		}
 	}
 
@@ -171,6 +188,8 @@ private struct FormattingComposeArea: View {
 	let onSend: () -> Void
 	let onAlert: () -> Void
 	let onRequestPosition: () -> Void
+	let onVoiceMemo: () -> Void
+	let destination: MessageDestination
 
 	@State private var textSelection: TextSelection?
 	@State private var showToolbar = false
@@ -217,7 +236,13 @@ private struct FormattingComposeArea: View {
 					.focused($isFocused)
 					.multilineTextAlignment(.leading)
 					.foregroundColor(.primary)
-				if !typingMessage.isEmpty {
+				if typingMessage.isEmpty {
+					Button(action: onVoiceMemo) {
+						Image(systemName: "mic.circle.fill")
+							.font(.largeTitle)
+							.foregroundColor(.accentColor)
+					}
+				} else {
 					Button(action: onSend) {
 						Image(systemName: "arrow.up.circle.fill")
 							.font(.largeTitle)
@@ -286,6 +311,7 @@ private struct FormattingComposeArea: View {
 					#endif
 					AlertButton(action: onAlert, compact: true)
 					RequestPositionButton(action: onRequestPosition, compact: true)
+					VoiceMemoButton(action: onVoiceMemo, compact: true)
 				}
 			}
 			Spacer()

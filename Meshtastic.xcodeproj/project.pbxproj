@@ -153,24 +153,12 @@
 		AA000001303050030000B001 /* Color+Brand.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000002303050030000B001 /* Color+Brand.swift */; };
 		AA0001012E2730EC00600001 /* ConnectViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00010022E2730EC0060000 /* ConnectViewTests.swift */; };
 		AA0001032F07A4B000600001 /* TAKModuleConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001042F07A4B000600001 /* TAKModuleConfig.swift */; };
-		AA00010A2F0CC00000600001 /* AudioConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00010B2F0CC00000600001 /* AudioConfig.swift */; };
 		AA0001052F07A4B000600001 /* TrafficManagementConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001062F07A4B000600001 /* TrafficManagementConfig.swift */; };
-		AA000101CPLAY000000000002 /* CarPlaySceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000201CPLAY000000000001 /* CarPlaySceneDelegate.swift */; };
+		AA00010A2F0CC00000600001 /* AudioConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00010B2F0CC00000600001 /* AudioConfig.swift */; };
 		AA000201CPLAY000000000004 /* CarPlayIntentDonation.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000201CPLAY000000000003 /* CarPlayIntentDonation.swift */; };
 		AA0002022F07A4B000600001 /* NeighborInfoConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0002012F07A4B000600001 /* NeighborInfoConfig.swift */; };
 		AA000301CPTST000000000002 /* CarPlayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000301CPTST000000000001 /* CarPlayTests.swift */; };
 		AA000401SIRI000000000002 /* AppIntentVocabulary.plist in Resources */ = {isa = PBXBuildFile; fileRef = AA000401SIRI000000000001 /* AppIntentVocabulary.plist */; };
-		AA0005WTCH00000000BF0001 /* MeshtasticWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0005WTCH00000000FR0001 /* MeshtasticWatchApp.swift */; };
-		AA0005WTCH00000000BF0002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0005WTCH00000000FR0002 /* ContentView.swift */; };
-		AA0005WTCH00000000BF0003 /* MeshNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0005WTCH00000000FR0003 /* MeshNode.swift */; };
-		AA0005WTCH00000000BF0004 /* PhoneConnectivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0005WTCH00000000FR0004 /* PhoneConnectivityManager.swift */; };
-		AA0005WTCH00000000BF0005 /* WatchLocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0005WTCH00000000FR0005 /* WatchLocationManager.swift */; };
-		AA0005WTCH00000000BF0006 /* FoxhuntCompassView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0005WTCH00000000FR0006 /* FoxhuntCompassView.swift */; };
-		AA0005WTCH00000000BF0007 /* NearbyNodesListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0005WTCH00000000FR0007 /* NearbyNodesListView.swift */; };
-		AA0005WTCH00000000BF0008 /* DeviceConnectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0005WTCH00000000FR0008 /* DeviceConnectionView.swift */; };
-		AA0005WTCH00000000BF0009 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA0005WTCH00000000FR0009 /* Assets.xcassets */; };
-		AA0005WTCH00000000BF0011 /* Meshtastic Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = AA0005WTCH00000000FR0012 /* Meshtastic Watch App.app */; platformFilter = ios; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		AA0005WTCH00000000BF0013 /* WatchCircleText.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0005WTCH00000000FR0013 /* WatchCircleText.swift */; };
 		AA003DOC0000002000000001 /* DocModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA003DOC0000001000000001 /* DocModels.swift */; };
 		AA003DOC0000002000000002 /* DocBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA003DOC0000001000000002 /* DocBrowserView.swift */; };
 		AA003DOC0000002000000003 /* DocPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA003DOC0000001000000003 /* DocPageView.swift */; };
@@ -220,7 +208,6 @@
 		BCE2D3C52C7AE369008E6199 /* RestartNodeIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCE2D3C42C7AE369008E6199 /* RestartNodeIntent.swift */; };
 		BCE2D3C72C7B0D0A008E6199 /* ShortcutsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCE2D3C62C7B0D0A008E6199 /* ShortcutsProvider.swift */; };
 		BCE2D3C92C7C377F008E6199 /* FactoryResetNodeIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCE2D3C82C7C377F008E6199 /* FactoryResetNodeIntent.swift */; };
-		BD7B1A838F8245A0B6BE56C5 /* WatchSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84CCF00CDD3D48C9B9DCA554 /* WatchSessionManager.swift */; };
 		C1B995B38DC97D13D90D9C1A /* DiscoverySummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1B6FB13C4D4E03503BB1DF8 /* DiscoverySummaryView.swift */; };
 		C54AC9F4DA920A4F718CE21A /* DiscoveryScanEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAD14FA280F0A130730DEB93 /* DiscoveryScanEngineTests.swift */; };
 		C79BFC99EDCC89DD45082753 /* DiscoveryScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5CA8BAC814CF82E127EEABF /* DiscoveryScanView.swift */; };
@@ -288,6 +275,8 @@
 		DD000030EVTFWNTST0000001 /* EventFirmwareNotificationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD000030EVTFWNTST0000000 /* EventFirmwareNotificationTests.swift */; };
 		DD00003ASUPPORTLVL0000001 /* SupportLevel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00003ASUPPORTLVL0000000 /* SupportLevel.swift */; };
 		DD00003C000SNAP00000001 /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = DD00003B000SNAP00000000 /* SnapshotTesting */; };
+		DD0000CDMIG001000000001 /* CoreDataMigrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0000CDMIG000000000001 /* CoreDataMigrationService.swift */; };
+		DD0000CDMOD001000000001 /* Meshtastic.xcdatamodeld in Resources */ = {isa = PBXBuildFile; fileRef = DD3CC6BA28E366DF00FA9159 /* Meshtastic.xcdatamodeld */; };
 		DD000BACKUP001000000002 /* BackupModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD000BACKUP001000000001 /* BackupModels.swift */; };
 		DD000BACKUP002000000002 /* NodeBackupManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD000BACKUP002000000001 /* NodeBackupManager.swift */; };
 		DD000BACKUP003000000002 /* NodeBackupManaging.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD000BACKUP003000000001 /* NodeBackupManaging.swift */; };
@@ -426,8 +415,6 @@
 		DDC2E18F26CE25FE0042C5E4 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDC2E18E26CE25FE0042C5E4 /* ContentView.swift */; };
 		DDC4C9FF2A8D982900CE201C /* DetectionSensorConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDC4C9FE2A8D982900CE201C /* DetectionSensorConfig.swift */; };
 		DDC4D568275499A500A4208E /* Persistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDC4D567275499A500A4208E /* Persistence.swift */; };
-		DD0000CDMIG001000000001 /* CoreDataMigrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0000CDMIG000000000001 /* CoreDataMigrationService.swift */; };
-		DD0000CDMOD001000000001 /* Meshtastic.xcdatamodeld in Resources */ = {isa = PBXBuildFile; fileRef = DD3CC6BA28E366DF00FA9159 /* Meshtastic.xcdatamodeld */; };
 		DDC94FC129CE063B0082EA6E /* BatteryLevel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDC94FC029CE063B0082EA6E /* BatteryLevel.swift */; };
 		DDC94FC229CE063B0082EA6E /* BatteryLevel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDC94FC029CE063B0082EA6E /* BatteryLevel.swift */; };
 		DDC94FCE29CF55310082EA6E /* RtttlConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDC94FCD29CF55310082EA6E /* RtttlConfig.swift */; };
@@ -483,6 +470,15 @@
 		EE7E2D900ACAC8053153354A /* DiscoveryScanEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC99855DBF52EBBBE07CEBA9 /* DiscoveryScanEngine.swift */; };
 		F1A2B3C4D5E6F7A800000002 /* Model+Sendable.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A2B3C4D5E6F7A800000001 /* Model+Sendable.swift */; };
 		FE508F9AF5AD5DA20AA64DBF /* AccessoryManager+TAK.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82232A3CF2DD284ED5B9B8ED /* AccessoryManager+TAK.swift */; };
+		MR001SVC0000002000000001 /* MeshReliableService.swift in Sources */ = {isa = PBXBuildFile; fileRef = MR001SVC0000001000000001 /* MeshReliableService.swift */; };
+		MR001VMB0000002000000001 /* VoiceMemoButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = MR001VMB0000001000000001 /* VoiceMemoButton.swift */; };
+		MR001VMP0000002000000001 /* VoiceMemoPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = MR001VMP0000001000000001 /* VoiceMemoPlayer.swift */; };
+		MR001VMR0000002000000001 /* VoiceMemoRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = MR001VMR0000001000000001 /* VoiceMemoRecorder.swift */; };
+		MR002GMS0000002000000001 /* GroupMessageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = MR002GMS0000001000000001 /* GroupMessageService.swift */; };
+		MR002GML0000002000000001 /* GroupList.swift in Sources */ = {isa = PBXBuildFile; fileRef = MR002GML0000001000000001 /* GroupList.swift */; };
+		MR002CGS0000002000000001 /* CreateGroupSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = MR002CGS0000001000000001 /* CreateGroupSheet.swift */; };
+		MR002GCV0000002000000001 /* GroupConversationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MR002GCV0000001000000001 /* GroupConversationView.swift */; };
+		MR002JGS0000002000000001 /* JoinGroupSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = MR002JGS0000001000000001 /* JoinGroupSheet.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -492,13 +488,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = DDC2E15326CE248E0042C5E4;
 			remoteInfo = Meshtastic;
-		};
-		AA0005WTCH00000000CX0001 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = DDC2E14C26CE248E0042C5E4 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = AA0005WTCH00000000NT0001;
-			remoteInfo = "Meshtastic Watch App";
 		};
 		DDDE5A0129AF163E00490C6C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -517,17 +506,6 @@
 			dstSubfolderSpec = 7;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		AA0005WTCH00000000CP0001 /* Embed Watch Content */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
-			dstSubfolderSpec = 16;
-			files = (
-				AA0005WTCH00000000BF0011 /* Meshtastic Watch App.app in Embed Watch Content */,
-			);
-			name = "Embed Watch Content";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		DDDE5A0829AF163F00490C6C /* Embed Foundation Extensions */ = {
@@ -668,13 +646,11 @@
 		748E4806582595DE80D455CD /* CoTXMLParser.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CoTXMLParser.swift; sourceTree = "<group>"; };
 		7F1B62B5CB54395476C3A924 /* GenericCoTHandler.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GenericCoTHandler.swift; sourceTree = "<group>"; };
 		82232A3CF2DD284ED5B9B8ED /* AccessoryManager+TAK.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "AccessoryManager+TAK.swift"; sourceTree = "<group>"; };
-		84CCF00CDD3D48C9B9DCA554 /* WatchSessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchSessionManager.swift; sourceTree = "<group>"; };
 		87D006C85B250291D5925F30 /* TAKMeshtasticBridge.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TAKMeshtasticBridge.swift; sourceTree = "<group>"; };
 		8A96594950B87789C0BB96DB /* NodeListHelp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeListHelp.swift; sourceTree = "<group>"; };
 		8D3F8A3D2D44B137009EAAA4 /* MeshtasticDataModelV 49.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "MeshtasticDataModelV 49.xcdatamodel"; sourceTree = "<group>"; };
 		8D3F8A3E2D44BB02009EAAA4 /* PowerMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerMetrics.swift; sourceTree = "<group>"; };
 		8D3F8A402D44C2A6009EAAA4 /* PowerMetricsLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerMetricsLog.swift; sourceTree = "<group>"; };
-		AA0001062F07A4B000600001 /* TrafficManagementConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficManagementConfig.swift; sourceTree = "<group>"; };
 		9155703C39B55FC9DDF3E4C1 /* TAKDataPackageGenerator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TAKDataPackageGenerator.swift; sourceTree = "<group>"; };
 		918722D2C1474B2D99ED01DC /* UserEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserEntity.swift; sourceTree = "<group>"; };
 		A97241903A924144A3EEB679 /* PositionEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PositionEntity.swift; sourceTree = "<group>"; };
@@ -682,6 +658,7 @@
 		AA00010022E2730EC0060000 /* ConnectViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectViewTests.swift; sourceTree = "<group>"; };
 		AA0001022F07A4B000600001 /* MeshtasticDataModelV 57.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "MeshtasticDataModelV 57.xcdatamodel"; sourceTree = "<group>"; };
 		AA0001042F07A4B000600001 /* TAKModuleConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TAKModuleConfig.swift; sourceTree = "<group>"; };
+		AA0001062F07A4B000600001 /* TrafficManagementConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficManagementConfig.swift; sourceTree = "<group>"; };
 		AA00010B2F0CC00000600001 /* AudioConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioConfig.swift; sourceTree = "<group>"; };
 		AA0002012F07A4B000600001 /* NeighborInfoConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeighborInfoConfig.swift; sourceTree = "<group>"; };
 		AA000201CPLAY000000000001 /* CarPlaySceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarPlaySceneDelegate.swift; sourceTree = "<group>"; };
@@ -704,18 +681,6 @@
 		AA000401SIRI000000000024 /* ko */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = ko; path = ko.lproj/AppIntentVocabulary.plist; sourceTree = "<group>"; };
 		AA000401SIRI000000000025 /* pt-BR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "pt-BR"; path = "pt-BR.lproj/AppIntentVocabulary.plist"; sourceTree = "<group>"; };
 		AA000401SIRI000000000026 /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "zh-Hant"; path = "zh-Hant.lproj/AppIntentVocabulary.plist"; sourceTree = "<group>"; };
-		AA0005WTCH00000000FR0001 /* MeshtasticWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshtasticWatchApp.swift; sourceTree = "<group>"; };
-		AA0005WTCH00000000FR0002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		AA0005WTCH00000000FR0003 /* MeshNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshNode.swift; sourceTree = "<group>"; };
-		AA0005WTCH00000000FR0004 /* PhoneConnectivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneConnectivityManager.swift; sourceTree = "<group>"; };
-		AA0005WTCH00000000FR0005 /* WatchLocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchLocationManager.swift; sourceTree = "<group>"; };
-		AA0005WTCH00000000FR0006 /* FoxhuntCompassView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoxhuntCompassView.swift; sourceTree = "<group>"; };
-		AA0005WTCH00000000FR0007 /* NearbyNodesListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyNodesListView.swift; sourceTree = "<group>"; };
-		AA0005WTCH00000000FR0008 /* DeviceConnectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceConnectionView.swift; sourceTree = "<group>"; };
-		AA0005WTCH00000000FR0009 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		AA0005WTCH00000000FR0010 /* Meshtastic Watch App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Meshtastic Watch App.entitlements"; sourceTree = "<group>"; };
-		AA0005WTCH00000000FR0012 /* Meshtastic Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Meshtastic Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		AA0005WTCH00000000FR0013 /* WatchCircleText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchCircleText.swift; sourceTree = "<group>"; };
 		AA003DOC0000001000000001 /* DocModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocModels.swift; sourceTree = "<group>"; };
 		AA003DOC0000001000000002 /* DocBrowserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocBrowserView.swift; sourceTree = "<group>"; };
 		AA003DOC0000001000000003 /* DocPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocPageView.swift; sourceTree = "<group>"; };
@@ -829,6 +794,7 @@
 		DD00002FSHRDTSTCNT000000 /* SharedTestContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedTestContainer.swift; sourceTree = "<group>"; };
 		DD000030EVTFWNTST0000000 /* EventFirmwareNotificationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventFirmwareNotificationTests.swift; sourceTree = "<group>"; };
 		DD00003ASUPPORTLVL0000000 /* SupportLevel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportLevel.swift; sourceTree = "<group>"; };
+		DD0000CDMIG000000000001 /* CoreDataMigrationService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreDataMigrationService.swift; sourceTree = "<group>"; };
 		DD000BACKUP001000000001 /* BackupModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupModels.swift; sourceTree = "<group>"; };
 		DD000BACKUP002000000001 /* NodeBackupManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeBackupManager.swift; sourceTree = "<group>"; };
 		DD000BACKUP003000000001 /* NodeBackupManaging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeBackupManaging.swift; sourceTree = "<group>"; };
@@ -1011,7 +977,6 @@
 		DDC4C9FE2A8D982900CE201C /* DetectionSensorConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionSensorConfig.swift; sourceTree = "<group>"; };
 		DDC4CA012A8DAA3800CE201C /* MeshtasticDataModelV16.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = MeshtasticDataModelV16.xcdatamodel; sourceTree = "<group>"; };
 		DDC4D567275499A500A4208E /* Persistence.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Persistence.swift; sourceTree = "<group>"; };
-		DD0000CDMIG000000000001 /* CoreDataMigrationService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreDataMigrationService.swift; sourceTree = "<group>"; };
 		DDC94FC029CE063B0082EA6E /* BatteryLevel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryLevel.swift; sourceTree = "<group>"; };
 		DDC94FC329CED7280082EA6E /* MeshtasticDataModelV10.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = MeshtasticDataModelV10.xcdatamodel; sourceTree = "<group>"; };
 		DDC94FCD29CF55310082EA6E /* RtttlConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RtttlConfig.swift; sourceTree = "<group>"; };
@@ -1083,6 +1048,15 @@
 		F3204EF969484E549C139730 /* MessageEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageEntity.swift; sourceTree = "<group>"; };
 		F5CA8BAC814CF82E127EEABF /* DiscoveryScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoveryScanView.swift; sourceTree = "<group>"; };
 		FC99855DBF52EBBBE07CEBA9 /* DiscoveryScanEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoveryScanEngine.swift; sourceTree = "<group>"; };
+		MR001SVC0000001000000001 /* MeshReliableService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshReliableService.swift; sourceTree = "<group>"; };
+		MR001VMB0000001000000001 /* VoiceMemoButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceMemoButton.swift; sourceTree = "<group>"; };
+		MR001VMP0000001000000001 /* VoiceMemoPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceMemoPlayer.swift; sourceTree = "<group>"; };
+		MR001VMR0000001000000001 /* VoiceMemoRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceMemoRecorder.swift; sourceTree = "<group>"; };
+		MR002GMS0000001000000001 /* GroupMessageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupMessageService.swift; sourceTree = "<group>"; };
+		MR002GML0000001000000001 /* GroupList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupList.swift; sourceTree = "<group>"; };
+		MR002CGS0000001000000001 /* CreateGroupSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateGroupSheet.swift; sourceTree = "<group>"; };
+		MR002GCV0000001000000001 /* GroupConversationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupConversationView.swift; sourceTree = "<group>"; };
+		MR002JGS0000001000000001 /* JoinGroupSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JoinGroupSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -1164,13 +1138,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				DD00003C000SNAP00000001 /* SnapshotTesting in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		AA0005WTCH00000000FP0001 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1558,6 +1525,8 @@
 			isa = PBXGroup;
 			children = (
 				FC99855DBF52EBBBE07CEBA9 /* DiscoveryScanEngine.swift */,
+				MR001SVC0000001000000001 /* MeshReliableService.swift */,
+				MR002GMS0000001000000001 /* GroupMessageService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -1581,48 +1550,6 @@
 				AA000201CPLAY000000000003 /* CarPlayIntentDonation.swift */,
 			);
 			path = CarPlay;
-			sourceTree = "<group>";
-		};
-		AA0005WTCH00000000GR0001 /* Meshtastic Watch App */ = {
-			isa = PBXGroup;
-			children = (
-				AA0005WTCH00000000FR0001 /* MeshtasticWatchApp.swift */,
-				AA0005WTCH00000000FR0002 /* ContentView.swift */,
-				AA0005WTCH00000000FR0010 /* Meshtastic Watch App.entitlements */,
-				AA0005WTCH00000000FR0009 /* Assets.xcassets */,
-				AA0005WTCH00000000GR0002 /* Managers */,
-				AA0005WTCH00000000GR0003 /* Models */,
-				AA0005WTCH00000000GR0004 /* Views */,
-			);
-			path = "Meshtastic Watch App";
-			sourceTree = "<group>";
-		};
-		AA0005WTCH00000000GR0002 /* Managers */ = {
-			isa = PBXGroup;
-			children = (
-				AA0005WTCH00000000FR0004 /* PhoneConnectivityManager.swift */,
-				AA0005WTCH00000000FR0005 /* WatchLocationManager.swift */,
-			);
-			path = Managers;
-			sourceTree = "<group>";
-		};
-		AA0005WTCH00000000GR0003 /* Models */ = {
-			isa = PBXGroup;
-			children = (
-				AA0005WTCH00000000FR0003 /* MeshNode.swift */,
-			);
-			path = Models;
-			sourceTree = "<group>";
-		};
-		AA0005WTCH00000000GR0004 /* Views */ = {
-			isa = PBXGroup;
-			children = (
-				AA0005WTCH00000000FR0006 /* FoxhuntCompassView.swift */,
-				AA0005WTCH00000000FR0007 /* NearbyNodesListView.swift */,
-				AA0005WTCH00000000FR0008 /* DeviceConnectionView.swift */,
-				AA0005WTCH00000000FR0013 /* WatchCircleText.swift */,
-			);
-			path = Views;
 			sourceTree = "<group>";
 		};
 		AA003DOC0000003000000001 /* HelpAndDocumentation */ = {
@@ -1704,6 +1631,7 @@
 				D9C9839F2B79D0E800BDBE6A /* AlertButton.swift */,
 				D9C983A12B79D1A600BDBE6A /* RequestPositionButton.swift */,
 				D9C9839C2B79CFD700BDBE6A /* TextMessageSize.swift */,
+				MR001VMB0000001000000001 /* VoiceMemoButton.swift */,
 			);
 			path = TextMessageField;
 			sourceTree = "<group>";
@@ -1991,7 +1919,6 @@
 				DDC2E15626CE248E0042C5E4 /* Meshtastic */,
 				DDDE59F729AF163D00490C6C /* Widgets */,
 				25F5D5C82C4375A8008036E3 /* MeshtasticTests */,
-				AA0005WTCH00000000GR0001 /* Meshtastic Watch App */,
 				DDC2E15526CE248E0042C5E4 /* Products */,
 				DD8EDE9226F97A2B00A5A10B /* Frameworks */,
 				DD8769092FC118EA00546DE9 /* Recovered References */,
@@ -2005,7 +1932,6 @@
 				DDC2E15426CE248E0042C5E4 /* Meshtastic.app */,
 				DDDE59F429AF163D00490C6C /* WidgetsExtension.appex */,
 				25F5D5C72C4375A8008036E3 /* MeshtasticTests.xctest */,
-				AA0005WTCH00000000FR0012 /* Meshtastic Watch App.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -2123,6 +2049,7 @@
 				DD9C700E2E8DE7FF00106227 /* UserMessageRow.swift */,
 				DD9C700C2E8D5A8900106227 /* ChannelMessageRow.swift */,
 				D9C9839E2B79D0C600BDBE6A /* TextMessageField */,
+				MR001VMG0000000000000001 /* VoiceMemo */,
 				DDB8F4132A9EE5F000230ECE /* ChannelList.swift */,
 				DD798B062915928D005217CD /* ChannelMessageList.swift */,
 				DDB8F40F2A9EE5B400230ECE /* Messages.swift */,
@@ -2133,6 +2060,10 @@
 				D93068D22B8129510066FBC8 /* MessageContextMenuItems.swift */,
 				D93068D82B81509C0066FBC8 /* TapbackResponses.swift */,
 				D93068D92B81509D0066FBC8 /* TapbackInputView.swift */,
+				MR002GML0000001000000001 /* GroupList.swift */,
+				MR002CGS0000001000000001 /* CreateGroupSheet.swift */,
+				MR002GCV0000001000000001 /* GroupConversationView.swift */,
+				MR002JGS0000001000000001 /* JoinGroupSheet.swift */,
 			);
 			path = Messages;
 			sourceTree = "<group>";
@@ -2176,7 +2107,6 @@
 				DD1BEF492E0292220090CE24 /* KeychainHelper.swift */,
 				DD913638270DFF4C00D7ACF3 /* LocalNotificationManager.swift */,
 				DDA6B2E828419CF2003E8C16 /* MeshPackets.swift */,
-				84CCF00CDD3D48C9B9DCA554 /* WatchSessionManager.swift */,
 				DD3619142B1EF9F900C41C8C /* LocationsHandler.swift */,
 				6D825E612C34786C008DBEE4 /* CommonRegex.swift */,
 				3D3417B32E2730EC006A988B /* GeoJSONOverlayManager.swift */,
@@ -2305,6 +2235,15 @@
 			path = Widgets;
 			sourceTree = "<group>";
 		};
+		MR001VMG0000000000000001 /* VoiceMemo */ = {
+			isa = PBXGroup;
+			children = (
+				MR001VMP0000001000000001 /* VoiceMemoPlayer.swift */,
+				MR001VMR0000001000000001 /* VoiceMemoRecorder.swift */,
+			);
+			path = VoiceMemo;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -2329,23 +2268,6 @@
 			productReference = 25F5D5C72C4375A8008036E3 /* MeshtasticTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		AA0005WTCH00000000NT0001 /* Meshtastic Watch App */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = AA0005WTCH00000000CL0001 /* Build configuration list for PBXNativeTarget "Meshtastic Watch App" */;
-			buildPhases = (
-				AA0005WTCH00000000SP0001 /* Sources */,
-				AA0005WTCH00000000FP0001 /* Frameworks */,
-				AA0005WTCH00000000RP0001 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = "Meshtastic Watch App";
-			productName = "Meshtastic Watch App";
-			productReference = AA0005WTCH00000000FR0012 /* Meshtastic Watch App.app */;
-			productType = "com.apple.product-type.application";
-		};
 		DDC2E15326CE248E0042C5E4 /* Meshtastic */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = DDC2E17E26CE248F0042C5E4 /* Build configuration list for PBXNativeTarget "Meshtastic" */;
@@ -2357,13 +2279,11 @@
 				DDC2E15126CE248E0042C5E4 /* Frameworks */,
 				DDC2E15226CE248E0042C5E4 /* Resources */,
 				DDDE5A0829AF163F00490C6C /* Embed Foundation Extensions */,
-				AA0005WTCH00000000CP0001 /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				DDDE5A0229AF163E00490C6C /* PBXTargetDependency */,
-				AA0005WTCH00000000TD0001 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				236CA20D2EE3036A00A47F96 /* images */,
@@ -2402,6 +2322,7 @@
 			name = WidgetsExtension;
 			packageProductDependencies = (
 				25A978BB2C13F90D0003AAE7 /* MeshtasticProtobufs */,
+				MR003SPB0000000000000001 /* SwiftProtobuf */,
 			);
 			productName = WidgetsExtension;
 			productReference = DDDE59F429AF163D00490C6C /* WidgetsExtension.appex */;
@@ -2415,7 +2336,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 1540;
-				LastUpgradeCheck = 1640;
+				LastUpgradeCheck = 2650;
 				TargetAttributes = {
 					25F5D5C62C4375A8008036E3 = {
 						CreatedOnToolsVersion = 15.4;
@@ -2473,7 +2394,6 @@
 				DDC2E15326CE248E0042C5E4 /* Meshtastic */,
 				DDDE59F329AF163D00490C6C /* WidgetsExtension */,
 				25F5D5C62C4375A8008036E3 /* MeshtasticTests */,
-				AA0005WTCH00000000NT0001 /* Meshtastic Watch App */,
 			);
 		};
 /* End PBXProject section */
@@ -2486,20 +2406,11 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		AA0005WTCH00000000RP0001 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				AA0005WTCH00000000BF0009 /* Assets.xcassets in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		DDC2E15226CE248E0042C5E4 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				DDC2E15F26CE248F0042C5E4 /* Preview Assets.xcassets in Resources */,
-				DD0000CDMOD001000000001 /* Meshtastic.xcdatamodeld in Resources */,
 				AA000401SIRI000000000002 /* AppIntentVocabulary.plist in Resources */,
 				DD98EB292E7A42CC0016320A /* AppIcon_Chirpy.icon in Resources */,
 				25AECD4F2C2F723200862C8E /* Localizable.xcstrings in Resources */,
@@ -2514,6 +2425,7 @@
 				DDDBC87B2BC62E4E001E8DF7 /* Settings.bundle in Resources */,
 				8E587743574CE17703E892C6 /* Certificates in Resources */,
 				AA003DOC0000004000000001 /* docs in Resources */,
+				DD0000CDMOD001000000001 /* Meshtastic.xcdatamodeld in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2632,22 +2544,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		AA0005WTCH00000000SP0001 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				AA0005WTCH00000000BF0001 /* MeshtasticWatchApp.swift in Sources */,
-				AA0005WTCH00000000BF0002 /* ContentView.swift in Sources */,
-				AA0005WTCH00000000BF0003 /* MeshNode.swift in Sources */,
-				AA0005WTCH00000000BF0004 /* PhoneConnectivityManager.swift in Sources */,
-				AA0005WTCH00000000BF0005 /* WatchLocationManager.swift in Sources */,
-				AA0005WTCH00000000BF0006 /* FoxhuntCompassView.swift in Sources */,
-				AA0005WTCH00000000BF0007 /* NearbyNodesListView.swift in Sources */,
-				AA0005WTCH00000000BF0008 /* DeviceConnectionView.swift in Sources */,
-				AA0005WTCH00000000BF0013 /* WatchCircleText.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		DDC2E15026CE248E0042C5E4 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -2691,7 +2587,6 @@
 				70A5B362F7EC4F14A99A8C39 /* UserEntity.swift in Sources */,
 				E340A7CA75194A49AB8763C7 /* WaypointEntity.swift in Sources */,
 				43C0CB306098FD005C2D489F /* IntentHandler.swift in Sources */,
-				AA000201CPLAY000000000002 /* CarPlaySceneDelegate.swift in Sources */,
 				AA000201CPLAY000000000004 /* CarPlayIntentDonation.swift in Sources */,
 				7717E5954788B23527BACF65 /* IntentMessageConverters.swift in Sources */,
 				AB4622DCF4B1D4115ED00312 /* SendMessageIntentHandler.swift in Sources */,
@@ -2826,7 +2721,6 @@
 				DD3CC6BE28E4CD9800FA9159 /* BatteryGauge.swift in Sources */,
 				237AEB912E1FE46D003B7CE3 /* AccessoryManager.swift in Sources */,
 				DD6193772862F90F00E59241 /* CannedMessagesConfig.swift in Sources */,
-				BD7B1A838F8245A0B6BE56C5 /* WatchSessionManager.swift in Sources */,
 				DD3619152B1EF9F900C41C8C /* LocationsHandler.swift in Sources */,
 				DD6F65792C6EADE60053C113 /* DirectMessagesHelp.swift in Sources */,
 				23148E302EE1CCE500F0DB2C /* MeshtasticAPI.swift in Sources */,
@@ -3023,6 +2917,15 @@
 				7CCBCA0251DAB58FD9D63D06 /* GenericCoTHandler.swift in Sources */,
 				6AC10554C1BCC1DF509C85EE /* NodeListHelp.swift in Sources */,
 				DD6F657D2C6EC2910053C113 /* HelpItem.swift in Sources */,
+				MR001SVC0000002000000001 /* MeshReliableService.swift in Sources */,
+				MR001VMP0000002000000001 /* VoiceMemoPlayer.swift in Sources */,
+				MR001VMR0000002000000001 /* VoiceMemoRecorder.swift in Sources */,
+				MR001VMB0000002000000001 /* VoiceMemoButton.swift in Sources */,
+				MR002GMS0000002000000001 /* GroupMessageService.swift in Sources */,
+				MR002GML0000002000000001 /* GroupList.swift in Sources */,
+				MR002CGS0000002000000001 /* CreateGroupSheet.swift in Sources */,
+				MR002GCV0000002000000001 /* GroupConversationView.swift in Sources */,
+				MR002JGS0000002000000001 /* JoinGroupSheet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3045,12 +2948,6 @@
 			isa = PBXTargetDependency;
 			target = DDC2E15326CE248E0042C5E4 /* Meshtastic */;
 			targetProxy = 25F5D5CB2C4375A8008036E3 /* PBXContainerItemProxy */;
-		};
-		AA0005WTCH00000000TD0001 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			platformFilter = ios;
-			target = AA0005WTCH00000000NT0001 /* Meshtastic Watch App */;
-			targetProxy = AA0005WTCH00000000CX0001 /* PBXContainerItemProxy */;
 		};
 		DDDE5A0229AF163E00490C6C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -3096,12 +2993,13 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = JKHHB9ZUN4;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = gvh.MeshtasticClient.MeshtasticTests;
+				PRODUCT_BUNDLE_IDENTIFIER = gvh.junomaluca.MeshtasticClient.MeshtasticTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = YES;
@@ -3122,11 +3020,12 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = JKHHB9ZUN4;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = gvh.MeshtasticClient.MeshtasticTests;
+				PRODUCT_BUNDLE_IDENTIFIER = gvh.junomaluca.MeshtasticClient.MeshtasticTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = YES;
@@ -3135,74 +3034,6 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Meshtastic.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Meshtastic";
-			};
-			name = Release;
-		};
-		AA0005WTCH00000000BC0001 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
-				CODE_SIGN_ENTITLEMENTS = "Meshtastic Watch App/Meshtastic Watch App.entitlements";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = GCH7VS5Y9R;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "Meshtastic Watch App/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = Meshtastic;
-				INFOPLIST_KEY_CFBundleIconName = AppIcon;
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Meshtastic needs your location to calculate distance and bearing to mesh nodes during foxhunt.";
-				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = gvh.MeshtasticClient;
-				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = NO;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				MARKETING_VERSION = 2.7.13;
-				PRODUCT_BUNDLE_IDENTIFIER = gvh.MeshtasticClient.watchkitapp;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "watchos watchsimulator";
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 10.0;
-			};
-			name = Debug;
-		};
-		AA0005WTCH00000000BC0002 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
-				CODE_SIGN_ENTITLEMENTS = "Meshtastic Watch App/Meshtastic Watch App.entitlements";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = GCH7VS5Y9R;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "Meshtastic Watch App/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = Meshtastic;
-				INFOPLIST_KEY_CFBundleIconName = AppIcon;
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Meshtastic needs your location to calculate distance and bearing to mesh nodes during foxhunt.";
-				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = gvh.MeshtasticClient;
-				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = NO;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				MARKETING_VERSION = 2.7.13;
-				PRODUCT_BUNDLE_IDENTIFIER = gvh.MeshtasticClient.watchkitapp;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "watchos watchsimulator";
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 10.0;
 			};
 			name = Release;
 		};
@@ -3268,6 +3099,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_STRICT_CONCURRENCY = targeted;
@@ -3331,6 +3163,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_STRICT_CONCURRENCY = targeted;
@@ -3352,6 +3185,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Meshtastic/Preview Content\"";
+				DEVELOPMENT_TEAM = JKHHB9ZUN4;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = NO;
@@ -3378,7 +3212,7 @@
 					"-weak_framework",
 					SwiftUI,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = gvh.MeshtasticClient;
+				PRODUCT_BUNDLE_IDENTIFIER = gvh.junomaluca.MeshtasticClient;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTS_MACCATALYST = YES;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -3401,6 +3235,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Meshtastic/Preview Content\"";
+				DEVELOPMENT_TEAM = JKHHB9ZUN4;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = NO;
@@ -3427,7 +3262,7 @@
 					"-weak_framework",
 					SwiftUI,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = gvh.MeshtasticClient;
+				PRODUCT_BUNDLE_IDENTIFIER = gvh.junomaluca.MeshtasticClient;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTS_MACCATALYST = YES;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -3447,6 +3282,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = JKHHB9ZUN4;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Widgets/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Widgets;
@@ -3459,7 +3295,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
 				MARKETING_VERSION = 2.7.13;
-				PRODUCT_BUNDLE_IDENTIFIER = gvh.MeshtasticClient.Widgets;
+				PRODUCT_BUNDLE_IDENTIFIER = gvh.junomaluca.MeshtasticClient.Widgets;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -3482,6 +3318,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = JKHHB9ZUN4;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Widgets/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Widgets;
@@ -3494,7 +3331,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
 				MARKETING_VERSION = 2.7.13;
-				PRODUCT_BUNDLE_IDENTIFIER = gvh.MeshtasticClient.Widgets;
+				PRODUCT_BUNDLE_IDENTIFIER = gvh.junomaluca.MeshtasticClient.Widgets;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -3515,15 +3352,6 @@
 			buildConfigurations = (
 				25F5D5CD2C4375A8008036E3 /* Debug */,
 				25F5D5CE2C4375A8008036E3 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		AA0005WTCH00000000CL0001 /* Build configuration list for PBXNativeTarget "Meshtastic Watch App" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				AA0005WTCH00000000BC0001 /* Debug */,
-				AA0005WTCH00000000BC0002 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3680,6 +3508,11 @@
 		25A978BB2C13F90D0003AAE7 /* MeshtasticProtobufs */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MeshtasticProtobufs;
+		};
+		MR003SPB0000000000000001 /* SwiftProtobuf */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 259792242C2F10B600AD1659 /* XCRemoteSwiftPackageReference "swift-protobuf" */;
+			productName = SwiftProtobuf;
 		};
 		AA009SMD0000000000000002 /* Markdown */ = {
 			isa = XCSwiftPackageProductDependency;

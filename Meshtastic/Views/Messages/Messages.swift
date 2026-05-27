@@ -15,35 +15,23 @@ struct Messages: View {
 	@Environment(\.modelContext) private var context
 	@Environment(\.colorScheme) private var colorScheme
 	@ObservedObject	var router: Router
+	@ObservedObject private var groupService = GroupMessageService.shared
 	@Binding var unreadChannelMessages: Int
 	@Binding var unreadDirectMessages: Int
 	@State var node: NodeInfoEntity?
 	@State private var userSelection: UserEntity? // Nothing selected by default.
 	@State private var channelSelection: ChannelEntity? // Nothing selected by default.
+	@State private var selectedGroupId: UInt32?
 
 	@State private var columnVisibility = NavigationSplitViewVisibility.all
+
+	private var unreadGroupMessages: Int {
+		groupService.unreadCounts.values.reduce(0, +)
+	}
 
 	var body: some View {
 		NavigationSplitView(columnVisibility: $columnVisibility) {
 			List(selection: $router.messagesState) {
-				NavigationLink(value: MessagesNavigationState.channels()) {
-					Spacer()
-					Label {
-						Text("Channels")
-							.badge(unreadChannelMessages)
-							.font(.title2)
-							.padding()
-					} icon: {
-						Image(systemName: "person.2")
-							.symbolRenderingMode(.hierarchical)
-							.foregroundColor(.accentColor)
-							.font(.title2)
-							.padding()
-					}
-				}
-				.alignmentGuide(.listRowSeparatorLeading) {
-					$0[.leading]
-				}
 				NavigationLink(value: MessagesNavigationState.directMessages()) {
 					Spacer()
 					Label {
@@ -53,6 +41,42 @@ struct Messages: View {
 							.padding()
 					} icon: {
 						Image(systemName: "person")
+							.symbolRenderingMode(.hierarchical)
+							.foregroundColor(.accentColor)
+							.font(.title2)
+							.padding()
+					}
+				}
+				.alignmentGuide(.listRowSeparatorLeading) {
+					$0[.leading]
+				}
+				NavigationLink(value: MessagesNavigationState.groupMessages()) {
+					Spacer()
+					Label {
+						Text("Group Messages")
+							.badge(unreadGroupMessages)
+							.font(.title2)
+							.padding()
+					} icon: {
+						Image(systemName: "person.3")
+							.symbolRenderingMode(.hierarchical)
+							.foregroundColor(.accentColor)
+							.font(.title2)
+							.padding()
+					}
+				}
+				.alignmentGuide(.listRowSeparatorLeading) {
+					$0[.leading]
+				}
+				NavigationLink(value: MessagesNavigationState.channels()) {
+					Spacer()
+					Label {
+						Text("Channels")
+							.badge(unreadChannelMessages)
+							.font(.title2)
+							.padding()
+					} icon: {
+						Image(systemName: "person.2")
 							.symbolRenderingMode(.hierarchical)
 							.foregroundColor(.accentColor)
 							.font(.title2)
@@ -81,11 +105,10 @@ struct Messages: View {
 			switch router.messagesState {
 			case .channels(let channelId, let messageId):
 				ChannelList(node: $node, channelSelection: $channelSelection)
-					// Removed navigationTitle and navigationBarTitleDisplayMode here.
-					// ChannelList.swift now handles this within its own NavigationStack.
 			case .directMessages(let userNum, let messageId):
 				UserList(node: $node, userSelection: $userSelection)
-					// Removed navigationTitle here. UserList will handle this.
+			case .groupMessages:
+				GroupList(selectedGroupId: $selectedGroupId)
 			case nil:
 				Text("Select a conversation type")
 			}
@@ -96,10 +119,14 @@ struct Messages: View {
 						ChannelMessageList(myInfo: myInfo, channel: channelSelection)
 					} else if let userSelection {
 						UserMessageList(user: userSelection)
+					} else if let selectedGroupId {
+						GroupConversationView(groupId: selectedGroupId)
 					} else if case .channels = router.messagesState {
 						Text("Select a channel")
 					} else if case .directMessages = router.messagesState {
 						Text("Select a conversation")
+					} else if case .groupMessages = router.messagesState {
+						Text("Select a group")
 					}
 				}
 				.navigationDestination(for: Int64.self) { nodeNum in
@@ -124,6 +151,7 @@ struct Messages: View {
 		guard let state = router.messagesState else {
 			channelSelection = nil
 			userSelection = nil
+			selectedGroupId = nil
 			return
 		}
 
@@ -134,6 +162,7 @@ struct Messages: View {
 			} else {
 				channelSelection = nil
 				userSelection = nil
+				selectedGroupId = nil
 			}
 		case .directMessages(userNum: let userNum, messageId: _):
 			if let userNum {
@@ -141,6 +170,15 @@ struct Messages: View {
 			} else {
 				channelSelection = nil
 				userSelection = nil
+				selectedGroupId = nil
+			}
+		case .groupMessages(groupId: let groupId):
+			if let groupId {
+				selectedGroupId = groupId
+			} else {
+				channelSelection = nil
+				userSelection = nil
+				selectedGroupId = nil
 			}
 		}
 	}

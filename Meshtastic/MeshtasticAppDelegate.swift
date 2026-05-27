@@ -6,7 +6,9 @@
 //
 
 #if os(iOS)
+#if canImport(Intents)
 import Intents
+#endif
 import SwiftData
 import SwiftUI
 import OSLog
@@ -35,20 +37,7 @@ class MeshtasticAppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificat
 		Task { @MainActor in
 			TAKServerManager.shared.initializeOnStartup()
 		}
-		// Request Siri authorization so intent donations work and CarPlay messaging is available.
-		#if !targetEnvironment(macCatalyst)
-		INPreferences.requestSiriAuthorization { status in
-			Logger.services.info("Siri authorization status: \(String(describing: status))")
-		}
-		#endif
 		return true
-	}
-
-	// MARK: - SiriKit Intent Handling
-
-	/// Routes incoming SiriKit intents to the appropriate handler for CarPlay and Siri messaging support.
-	func application(_ application: UIApplication, handlerFor intent: INIntent) -> Any? {
-		IntentHandler().handler(for: intent)
 	}
 
 	// MARK: - CarPlay Mark As Read
