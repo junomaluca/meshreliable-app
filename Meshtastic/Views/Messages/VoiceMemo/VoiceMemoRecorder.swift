@@ -11,6 +11,15 @@ import SwiftUI
 import AVFoundation
 import OSLog
 
+// MARK: - Audio Engine Setup (Sendable container for cross-actor transfer)
+
+private struct AudioEngineParts: @unchecked Sendable {
+	let engine: AVAudioEngine
+	let inputFormat: AVAudioFormat
+	let targetFormat: AVAudioFormat
+	let converter: AVAudioConverter
+}
+
 // MARK: - Audio Recorder Engine
 
 @MainActor
@@ -52,41 +61,54 @@ final class VoiceMemoRecorderModel: ObservableObject {
 		waveformSamples = []
 		recordingDuration = 0
 
-		let session = AVAudioSession.sharedInstance()
-		do {
-			try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker])
-			try session.setPreferredSampleRate(Self.sampleRate)
-			try session.setActive(true)
-		} catch {
-			Logger.mesh.error("Failed to configure audio session: \(error.localizedDescription)")
-			return
-		}
+		// Audio session config and engine init MUST run off the main thread.
+		// AVAudioEngine.inputNode and outputFormat(forBus:) trigger synchronous
+		// IPC to coreaudiod that deadlocks when called on the main actor.
+		let prepared: AudioEngineParts? = await Task.detached(priority: .userInitiated) {
+			let session = AVAudioSession.sharedInstance()
+			do {
+				try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker])
+				try session.setPreferredSampleRate(8000)
+				try session.setActive(true)
+			} catch {
+				Logger.mesh.error("Failed to configure audio session: \(error.localizedDescription)")
+				return nil
+			}
 
-		let engine = AVAudioEngine()
-		let inputNode = engine.inputNode
-		let inputFormat = inputNode.outputFormat(forBus: 0)
+			let engine = AVAudioEngine()
+			let inputNode = engine.inputNode
+			let inputFormat = inputNode.outputFormat(forBus: 0)
 
-		// Target format: 8kHz mono Int16
-		guard let targetFormat = AVAudioFormat(
-			commonFormat: .pcmFormatInt16,
-			sampleRate: Self.sampleRate,
-			channels: 1,
-			interleaved: true
-		) else {
-			Logger.mesh.error("Failed to create target audio format")
-			return
-		}
+			guard let targetFormat = AVAudioFormat(
+				commonFormat: .pcmFormatInt16,
+				sampleRate: 8000,
+				channels: 1,
+				interleaved: true
+			) else {
+				Logger.mesh.error("Failed to create target audio format")
+				return nil
+			}
 
-		guard let converter = AVAudioConverter(from: inputFormat, to: targetFormat) else {
-			Logger.mesh.error("Failed to create audio converter from \(inputFormat) to \(targetFormat)")
-			return
-		}
+			guard let converter = AVAudioConverter(from: inputFormat, to: targetFormat) else {
+				Logger.mesh.error("Failed to create audio converter from \(inputFormat) to \(targetFormat)")
+				return nil
+			}
 
-		inputNode.installTap(onBus: 0, bufferSize: 1024, format: inputFormat) { [weak self] buffer, _ in
+			return AudioEngineParts(engine: engine, inputFormat: inputFormat, targetFormat: targetFormat, converter: converter)
+		}.value
+
+		guard let prepared else { return }
+
+		let engine = prepared.engine
+		let inputFormat = prepared.inputFormat
+		let targetFormat = prepared.targetFormat
+		let converter = prepared.converter
+
+		engine.inputNode.installTap(onBus: 0, bufferSize: 1024, format: inputFormat) { [weak self] buffer, _ in
 			guard let self else { return }
 
 			// Convert to 8kHz mono Int16
-			let ratio = Self.sampleRate / inputFormat.sampleRate
+			let ratio = 8000.0 / inputFormat.sampleRate
 			let outputFrameCount = AVAudioFrameCount(Double(buffer.frameLength) * ratio)
 			guard outputFrameCount > 0,
 				  let outputBuffer = AVAudioPCMBuffer(pcmFormat: targetFormat, frameCapacity: outputFrameCount) else {
