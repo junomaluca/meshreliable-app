@@ -30,7 +30,7 @@
       shouldAutocreateTestPlan = "YES">
       <Testables>
          <TestableReference
-            skipped = "YES">
+            skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "25F5D5C62C4375A8008036E3"
@@ -90,6 +90,11 @@
          <EnvironmentVariable
             key = "TRANSLATIONS_GITHUB_TOKEN"
             value = ""
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "MESHRELIABLE_DEBUG"
+            value = "1"
             isEnabled = "YES">
          </EnvironmentVariable>
       </EnvironmentVariables>

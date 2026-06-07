@@ -203,24 +203,25 @@ struct NodeWeatherForecast {
 				currentLowerBound = entry.date
 			}
 		}
-		if let lowerBound = currentLowerBound {
-			results.append(lowerBound..<entries.last!.date)
+		if let lowerBound = currentLowerBound, let lastEntry = entries.last {
+			results.append(lowerBound..<lastEntry.date)
 		}
 		return results
 	}
 
 	var binRange: ClosedRange<Date> {
-		let startDate: Date = entries.map(\.date).first(where: {
+		let dates = entries.map(\.date)
+		let startDate: Date = dates.first(where: {
 			Calendar.current.component(.hour, from: $0).isMultiple(of: 3)
-		})!
-		let endDate: Date = entries.map(\.date).reversed().first(where: {
+		}) ?? dates.first ?? Date()
+		let endDate: Date = dates.reversed().first(where: {
 			Calendar.current.component(.hour, from: $0).isMultiple(of: 3)
-		})!
+		}) ?? dates.last ?? Date()
 		return startDate ... endDate
 	}
 
 	func temperature(at date: Date) -> Double {
-		entries.first(where: { $0.date == date })!.degrees
+		entries.first(where: { $0.date == date })?.degrees ?? 0
 	}
 }
 

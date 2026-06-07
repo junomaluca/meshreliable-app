@@ -165,6 +165,7 @@ struct ChannelMessageList: View {
 			.defaultScrollAnchorBottomSizeChanges()
 			.scrollDismissesKeyboard(.immediately)
 			.onAppear {
+				markMessagesAsRead()
 				DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
 					scrollView.scrollTo("bottomAnchor", anchor: .bottom)
 				}

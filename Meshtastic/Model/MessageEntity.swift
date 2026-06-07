@@ -36,6 +36,12 @@ final class MessageEntity {
 	var showTranslatedMessage: Bool = false
 	var snr: Float = 0.0
 
+	/// JPEG image data attached to this message (compressed, ~2-5KB).
+	@Attribute(.externalStorage) var imageData: Data?
+
+	/// Raw PCM voice memo data attached to this message (8kHz 16-bit mono).
+	@Attribute(.externalStorage) var voiceMemoData: Data?
+
 	var fromUser: UserEntity?
 	var toUser: UserEntity?
 

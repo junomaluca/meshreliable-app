@@ -62,9 +62,9 @@ enum AccessoryError: Error, LocalizedError {
 			// Map specific CBATTError values to a more user-friendly message
 			switch attError.code {
 			case .insufficientAuthentication: // 5
-				return "Bluetooth \(attError.localizedDescription) Please try connecting again and check the BLE PIN carefully.".localized
+				return "Bluetooth authentication failed. Please go to Settings > Bluetooth, forget this device, then try connecting again.".localized
 			case .insufficientEncryption: // 15
-				return "Bluetooth \(attError.localizedDescription) Please try connecting again and check the BLE PIN carefully.".localized
+				return "Bluetooth encryption failed. Please go to Settings > Bluetooth, forget this device, then try connecting again.".localized
 			default:
 				// Fallback for other CBError codes
 				return "A Bluetooth Attribute Protocol error occurred: \(attError.localizedDescription)"
@@ -100,7 +100,7 @@ enum AccessoryManagerState: Equatable {
 		case .subscribed:
 			return "Subscribed"
 		case .retrievingDatabase(let nodeCount):
-			return "Retreiving nodes \(nodeCount)"
+			return "Retrieving nodes \(nodeCount)"
 		}
 	}
 }
@@ -170,6 +170,8 @@ class AccessoryManager: ObservableObject, MqttClientProxyManagerDelegate {
 	// RXTXIndicatorWidget observes these via onChange polling.
 	var packetsSent: Int = 0
 	var packetsReceived: Int = 0
+	var dataPacketsReceived: Int = 0
+	var lastReceivedPortnums: [String] = []
 	
 	// Continuations
 	var wantConfigContinuation: CheckedContinuation<Void, Error>?
@@ -293,6 +295,7 @@ class AccessoryManager: ObservableObject, MqttClientProxyManagerDelegate {
 
 		Logger.transport.debug("[AccessoryManager] received disconnect request")
 
+		let disconnectedDeviceId = activeConnection?.device.id
 		if let activeConnection {
 			updateDevice(deviceId: activeConnection.device.id, key: \.connectionState, value: .disconnected)
 			self.activeConnection = nil
@@ -335,7 +338,15 @@ class AccessoryManager: ObservableObject, MqttClientProxyManagerDelegate {
 		// startDiscovery() would silently no-op and the device would never reappear in the list.
 		discoveryTask?.cancel()
 		discoveryTask = nil
-		
+
+		// On user-initiated disconnect, clear the UI device list so it refreshes
+		// from fresh scan results. Keep the BLE transport's discovery cache intact
+		// so the device is immediately re-yielded when scanning restarts, avoiding
+		// the case where CoreBluetooth doesn't re-report a known peripheral.
+		if userRequestedConnectionCancellation {
+			devices.removeAll()
+		}
+
 		self.startDiscovery()
 	}
 	
@@ -343,15 +354,33 @@ class AccessoryManager: ObservableObject, MqttClientProxyManagerDelegate {
 	func disconnect() async throws {
 		guard !isClosingConnection else { return }
 		self.userRequestedConnectionCancellation = true
+
+		// Capture the connection reference BEFORE cancelling the stepper,
+		// because the stepper's catch block runs closeConnection() which
+		// sets activeConnection = nil. Without this, the BLE disconnect
+		// at the end would never fire, leaving the peripheral connected.
+		let connectionToDisconnect = activeConnection?.connection
+
 		// Cancel ongoing connection task if it exists
 		await self.connectionStepper?.cancel()
 
 		// Flush any debounced position/telemetry saves before disconnecting
 		await MeshPackets.shared.flushDebouncedSaves()
 
-		// Close out the connection
-		if let activeConnection = activeConnection {
-			try await activeConnection.connection.disconnect(withError: nil, shouldReconnect: false)
+		// Explicitly tear down connection state. Don't rely solely on the
+		// .disconnected event from BLE — the event listener may have been
+		// cancelled by the stepper's catch block, or the BLE transport may
+		// not emit the event reliably after cancelPeripheralConnection.
+		try? await self.closeConnection()
+
+		// Close out the BLE connection using the captured reference
+		if let connection = connectionToDisconnect {
+			try? await connection.disconnect(withError: nil, shouldReconnect: false)
+		}
+
+		// Guarantee UI reflects disconnected state regardless of event delivery
+		if state != .discovering {
+			updateState(.discovering)
 		}
 	}
 
@@ -420,9 +449,8 @@ class AccessoryManager: ObservableObject, MqttClientProxyManagerDelegate {
 
 	func send(_ data: ToRadio, debugDescription: String? = nil) async throws {
 		packetsSent += 1
-		
-		guard let active = activeConnection,
-			  await active.connection.isConnected else {
+
+		guard let active = activeConnection else {
 			throw AccessoryError.connectionFailed("Not connected to any device")
 		}
 		try await active.connection.send(data)
@@ -438,11 +466,11 @@ class AccessoryManager: ObservableObject, MqttClientProxyManagerDelegate {
 
 		switch event {
 		case .data(let fromRadio):
+			dataPacketsReceived += 1
 			guard !shouldIgnoreTransientEvent else {
 				Logger.transport.debug("[Accessory] Dropping data event during disconnect teardown")
 				return
 			}
-			// Logger.transport.info("✅ [Accessory] didReceive: \(fromRadio.payloadVariant.debugDescription)")
 			await self.processFromRadio(fromRadio)
 			Task {
 				await self.heartbeatResponseTimer?.cancel(withReason: "Data packet received")
@@ -560,7 +588,25 @@ class AccessoryManager: ObservableObject, MqttClientProxyManagerDelegate {
 	}
 
 	private func processFromRadio(_ decodedInfo: FromRadio) async {
-		// Logger.transport.info("📻 [processFromRadio] Processing: \(String(describing: decodedInfo.payloadVariant), privacy: .public)")
+		// Log every FromRadio for debug visibility
+		let variantName: String
+		switch decodedInfo.payloadVariant {
+		case .packet: variantName = "packet"
+		case .myInfo: variantName = "myInfo"
+		case .nodeInfo: variantName = "nodeInfo"
+		case .channel: variantName = "channel"
+		case .config: variantName = "config"
+		case .moduleConfig: variantName = "moduleConfig"
+		case .metadata: variantName = "metadata"
+		case .mqttClientProxyMessage: variantName = "mqtt"
+		case .clientNotification: variantName = "clientNotification"
+		default: variantName = "other"
+		}
+		MeshReliableTelemetry.shared.record(.fromRadioReceived, details: [
+			"variant": variantName,
+			"id": "\(decodedInfo.id)"
+		])
+
 		switch decodedInfo.payloadVariant {
 		case .mqttClientProxyMessage(let mqttClientProxyMessage):
 			handleMqttClientProxyMessage(mqttClientProxyMessage)
@@ -581,6 +627,23 @@ class AccessoryManager: ObservableObject, MqttClientProxyManagerDelegate {
 
 			// Dispatch based on packet contents.
 			if case let .decoded(data) = packet.payloadVariant {
+				// Track last received portnums for debug endpoint
+				let pnEntry = "\(data.portnum)(\(data.portnum.rawValue)) from=\(packet.from) id=\(packet.id)"
+				lastReceivedPortnums.append(pnEntry)
+				if lastReceivedPortnums.count > 30 { lastReceivedPortnums.removeFirst() }
+
+				// Log ALL decoded packets for debugging
+				MeshReliableTelemetry.shared.record(.packetReceived, details: [
+					"from": "\(packet.from)",
+					"to": "\(packet.to)",
+					"portnum": "\(data.portnum)",
+					"portnumRaw": "\(data.portnum.rawValue)",
+					"id": "\(packet.id)",
+					"channel": "\(packet.channel)",
+					"hopStart": "\(packet.hopStart)",
+					"hopLimit": "\(packet.hopLimit)"
+				])
+
 				// Forward packets to discovery scan engine if active
 				if let engine = discoveryScanEngine, engine.isScanning {
 					engine.handleMeshPacket(packet, portNum: data.portnum)
@@ -589,6 +652,16 @@ class AccessoryManager: ObservableObject, MqttClientProxyManagerDelegate {
 				switch data.portnum {
 				case .textMessageApp, .detectionSensorApp, .alertApp:
 					await handleTextMessageAppPacket(packet)
+					var recvDetails: [String: String] = [
+						"from": "\(packet.from)",
+						"to": "\(packet.to)",
+						"portnum": "\(data.portnum.rawValue)",
+						"id": "\(packet.id)"
+					]
+					if let text = String(bytes: data.payload, encoding: .utf8) {
+						recvDetails["text"] = String(text.prefix(200))
+					}
+					MeshReliableTelemetry.shared.record(.messageReceived, details: recvDetails)
 					// Broadcast text message to TAK clients
 					if let text = String(bytes: data.payload, encoding: .utf8) {
 						Logger.tak.debug("Text message received, calling broadcast")
@@ -738,6 +811,15 @@ class AccessoryManager: ObservableObject, MqttClientProxyManagerDelegate {
 				case .unknownApp:
 					Logger.mesh.warning("🕸️ MESH PACKET received for unknown App UNHANDLED \((try? decodedInfo.packet.jsonString()) ?? "JSON Decode Failure", privacy: .public)")
 				}
+			} else {
+				// Encrypted or undecoded packet
+				MeshReliableTelemetry.shared.record(.packetReceived, details: [
+					"from": "\(packet.from)",
+					"to": "\(packet.to)",
+					"id": "\(packet.id)",
+					"encrypted": "true",
+					"channel": "\(packet.channel)"
+				])
 			}
 			// Save any pending updateAnyPacketFrom changes for packets that
 			// don't have a dedicated handler (UNHANDLED cases above).
@@ -772,6 +854,10 @@ class AccessoryManager: ObservableObject, MqttClientProxyManagerDelegate {
 #else
 			Logger.mesh.info("🕸️ MESH PACKET received for heartbeat response")
 #endif
+			Task {
+				await self.heartbeatResponseTimer?.cancel(withReason: "QueueStatus (heartbeat response) received")
+				await self.heartbeatTimer?.reset(delay: .seconds(15.0))
+			}
 		case .logRecord(let record):
 			didReceiveLog(message: record.stringRepresentation)
 			

@@ -1,9 +1,11 @@
 import SwiftUI
+import PhotosUI
 import OSLog
 
 struct TextMessageField: View {
 	static let maxbytes = 200
 	@EnvironmentObject var accessoryManager: AccessoryManager
+	@ObservedObject private var meshReliable = MeshReliableService.shared
 	@Environment(\.horizontalSizeClass) var horizontalSizeClass
 	@Environment(\.dismiss) var dismiss
 
@@ -15,6 +17,13 @@ struct TextMessageField: View {
 	@State private var totalBytes = 0
 	@State private var sendPositionWithMessage = false
 	@State private var showVoiceMemoRecorder = false
+	@State private var showImagePicker = false
+	@State private var selectedPhotoItem: PhotosPickerItem?
+
+	private var isChannel: Bool {
+		if case .channel = destination { return true }
+		return false
+	}
 
 	var body: some View {
 		if #available(iOS 18.0, macOS 15.0, *) {
@@ -25,31 +34,35 @@ struct TextMessageField: View {
 				isFocused: $isFocused,
 				maxbytes: Self.maxbytes,
 				onSend: sendMessage,
-				onAlert: { typingMessage += "🔔 Alert Bell Character! \u{7}" },
+				onAlert: {
+					typingMessage += "\u{1F514} Alert Bell Character! \u{7}"
+					sendMessage()
+				},
 				onRequestPosition: requestPosition,
-				onVoiceMemo: { showVoiceMemoRecorder = true },
-				destination: destination
+				onVoiceMemo: { isFocused = false; showVoiceMemoRecorder = true },
+				onImagePick: { isFocused = false; showImagePicker = true },
+				destination: destination,
+				hideMediaButtons: isChannel
 			)
 			.sheet(isPresented: $showVoiceMemoRecorder) {
 				VoiceMemoRecorder(destination: destination)
 			}
+			.photosPicker(isPresented: $showImagePicker, selection: $selectedPhotoItem, matching: .images)
+			.onChange(of: selectedPhotoItem) { _, newItem in
+				handlePhotoSelection(newItem)
+			}
 		} else {
 			VStack(spacing: 0) {
 				HStack(alignment: .top) {
-					if replyMessageId != 0 || isFocused {
-						Button {
-							withAnimation(.easeInOut(duration: 0.2)) {
-								replyMessageId = 0
-							}
-							isFocused = false
-						} label: {
-							Image(systemName: "x.circle.fill")
-								.font(.largeTitle)
-							}
-							if replyMessageId != 0 {
-								Text("Reply")
-									.padding(.top, 10)
-							}
+						if replyMessageId != 0 {
+							Text("Reply")
+								.padding(.top, 10)
+								.foregroundColor(.accentColor)
+								.onTapGesture {
+									withAnimation(.easeInOut(duration: 0.2)) {
+										replyMessageId = 0
+									}
+								}
 						}
 						TextField("Message", text: $typingMessage, axis: .vertical)
 							.frame(minHeight: 36)
@@ -78,14 +91,7 @@ struct TextMessageField: View {
 							}
 							.foregroundColor(.primary)
 							.accessibilityIdentifier("messageTextField")
-						if typingMessage.isEmpty {
-							Button(action: { showVoiceMemoRecorder = true }) {
-								Image(systemName: "mic.circle.fill")
-									.font(.largeTitle)
-									.foregroundColor(.accentColor)
-							}
-							.accessibilityIdentifier("voiceMemoButton")
-						} else {
+						if !typingMessage.isEmpty {
 							Button(action: sendMessage) {
 								Image(systemName: "arrow.up.circle.fill")
 									.font(.largeTitle)
@@ -131,40 +137,76 @@ struct TextMessageField: View {
 			}
 			Spacer()
 			#endif
-			AlertButton { typingMessage += "🔔 Alert Bell Character! \u{7}" }
+			AlertButton {
+				typingMessage += "\u{1F514} Alert Bell Character! \u{7}"
+				sendMessage()
+			}
 			Spacer()
 			RequestPositionButton(action: requestPosition)
 			Spacer()
-			VoiceMemoButton(action: { showVoiceMemoRecorder = true })
-			Spacer()
+			if !isChannel {
+				VoiceMemoButton(action: { showVoiceMemoRecorder = true })
+				Spacer()
+				ImageButton(action: { showImagePicker = true })
+				Spacer()
+			}
 			TextMessageSize(maxbytes: Self.maxbytes, totalBytes: totalBytes)
 		}
 		.sheet(isPresented: $showVoiceMemoRecorder) {
 			VoiceMemoRecorder(destination: destination)
+		}
+		.photosPicker(isPresented: $showImagePicker, selection: $selectedPhotoItem, matching: .images)
+		.onChange(of: selectedPhotoItem) { _, newItem in
+			handlePhotoSelection(newItem)
 		}
 	}
 
 	private func requestPosition() {
 		let userLongName = accessoryManager.activeConnection?.device.longName ?? "Unknown"
 		sendPositionWithMessage = true
-		typingMessage = "📍 " + userLongName + " \(destination.positionShareMessage)."
+		typingMessage = "\u{1F4CD} " + userLongName + " \(destination.positionShareMessage)."
+		sendMessage()
+	}
+
+	private func handlePhotoSelection(_ item: PhotosPickerItem?) {
+		guard let item else { return }
+		isFocused = false
+		Task {
+			if let data = try? await item.loadTransferable(type: Data.self),
+			   let image = UIImage(data: data) {
+				meshReliable.sendImageInline(
+					image: image,
+					toUserNum: destination.userNum,
+					channel: destination.channelNum,
+					accessoryManager: accessoryManager
+				)
+			}
+			selectedPhotoItem = nil
+		}
 	}
 
 	private func sendMessage() {
+		let messageToSend = typingMessage
+		let replyId = replyMessageId
+		typingMessage = ""
+		isFocused = false
+		replyMessageId = 0
+
 		Task {
+			// Signal media uploads to pause while text is sent
+			meshReliable.signalTextSending()
+			defer { meshReliable.signalTextSent() }
+
 			do {
 				try await accessoryManager.sendMessage(
-					message: typingMessage,
+					message: messageToSend,
 					toUserNum: destination.userNum,
 					channel: destination.channelNum,
 					isEmoji: false,
-					replyID: replyMessageId)
-
-				typingMessage = ""
-				isFocused = false
-				replyMessageId = 0
+					replyID: replyId)
 
 				if sendPositionWithMessage {
+					sendPositionWithMessage = false
 					try await accessoryManager.sendPosition(
 						channel: destination.channelNum,
 						destNum: destination.positionDestNum,
@@ -173,7 +215,9 @@ struct TextMessageField: View {
 					Logger.mesh.info("Location Sent")
 				}
 			} catch {
-				Logger.mesh.info("Error sending message")
+				Logger.mesh.error("Error sending message: \(error.localizedDescription)")
+				typingMessage = messageToSend
+				replyMessageId = replyId
 			}
 		}
 	}
@@ -192,7 +236,9 @@ private struct FormattingComposeArea: View {
 	let onAlert: () -> Void
 	let onRequestPosition: () -> Void
 	let onVoiceMemo: () -> Void
+	let onImagePick: () -> Void
 	let destination: MessageDestination
+	var hideMediaButtons: Bool = false
 
 	@State private var textSelection: TextSelection?
 	@State private var showToolbar = false
@@ -202,20 +248,15 @@ private struct FormattingComposeArea: View {
 		VStack(spacing: 0) {
 			MessagePreview(text: typingMessage)
 			HStack(alignment: .top) {
-				if replyMessageId != 0 || isFocused {
-					Button {
-						withAnimation(.easeInOut(duration: 0.2)) {
-							replyMessageId = 0
+				if replyMessageId != 0 {
+					Text("Reply")
+						.padding(.top, 10)
+						.foregroundColor(.accentColor)
+						.onTapGesture {
+							withAnimation(.easeInOut(duration: 0.2)) {
+								replyMessageId = 0
+							}
 						}
-						isFocused = false
-					} label: {
-						Image(systemName: "x.circle.fill")
-							.font(.largeTitle)
-					}
-					if replyMessageId != 0 {
-						Text("Reply")
-							.padding(.top, 10)
-					}
 				}
 				TextEditor(text: $typingMessage, selection: $textSelection)
 					.frame(minHeight: 36, maxHeight: 200)
@@ -240,14 +281,7 @@ private struct FormattingComposeArea: View {
 					.multilineTextAlignment(.leading)
 					.foregroundColor(.primary)
 					.accessibilityIdentifier("messageTextField")
-				if typingMessage.isEmpty {
-					Button(action: onVoiceMemo) {
-						Image(systemName: "mic.circle.fill")
-							.font(.largeTitle)
-							.foregroundColor(.accentColor)
-					}
-					.accessibilityIdentifier("voiceMemoButton")
-				} else {
+				if !typingMessage.isEmpty {
 					Button(action: onSend) {
 						Image(systemName: "arrow.up.circle.fill")
 							.font(.largeTitle)
@@ -317,7 +351,10 @@ private struct FormattingComposeArea: View {
 					#endif
 					AlertButton(action: onAlert, compact: true)
 					RequestPositionButton(action: onRequestPosition, compact: true)
-					VoiceMemoButton(action: onVoiceMemo, compact: true)
+					if !hideMediaButtons {
+						VoiceMemoButton(action: onVoiceMemo, compact: true)
+						ImageButton(action: onImagePick, compact: true)
+					}
 				}
 			}
 			Spacer()
@@ -331,6 +368,7 @@ private extension MessageDestination {
 		switch self {
 		case .user: return "has shared their position and requested a response with your position"
 		case .channel: return "has shared their position with you"
+		case .group: return "has shared their position with the group"
 		}
 	}
 
@@ -338,6 +376,7 @@ private extension MessageDestination {
 		switch self {
 		case let .user(user): return user.num
 		case .channel: return Int64(Constants.maximumNodeNum)
+		case .group: return Int64(Constants.maximumNodeNum)
 		}
 	}
 
@@ -345,6 +384,7 @@ private extension MessageDestination {
 		switch self {
 		case .user: return true
 		case .channel: return false
+		case .group: return false
 		}
 	}
 }

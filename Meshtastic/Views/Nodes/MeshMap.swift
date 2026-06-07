@@ -290,6 +290,17 @@ struct MeshMap: View {
 		.onAppear {
 			UIApplication.shared.isIdleTimerDisabled = true
 			refreshMapWindowOpenState()
+			// Center map on user's device location
+			if let currentLocation = LocationsHandler.shared.locationsArray.last,
+			   currentLocation.coordinate.latitude != LocationsHandler.DefaultLocation.latitude,
+			   currentLocation.coordinate.longitude != LocationsHandler.DefaultLocation.longitude {
+				position = .camera(MapCamera(
+					centerCoordinate: currentLocation.coordinate,
+					distance: meshMapDistance,
+					heading: 0,
+					pitch: 0
+				))
+			}
 			// Initialize enabled overlay configs with all active files
 			let activeFiles = GeoJSONOverlayManager.shared.getUploadedFilesWithState().filter { $0.isActive }
 			enabledOverlayConfigs = Set(activeFiles.map { $0.id })

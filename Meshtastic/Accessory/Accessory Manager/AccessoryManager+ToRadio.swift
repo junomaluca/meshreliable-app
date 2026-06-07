@@ -318,7 +318,7 @@ extension AccessoryManager {
 
 					let dataType = PortNum.textMessageApp
 					var messageQuotesReplaced = message.replacingOccurrences(of: "’", with: "'")
-					messageQuotesReplaced = message.replacingOccurrences(of: "”", with: "\"")
+					messageQuotesReplaced = messageQuotesReplaced.replacingOccurrences(of: "”", with: "\"")
 					let payloadData: Data = messageQuotesReplaced.data(using: String.Encoding.utf8)!
 
 					var dataMessage = DataMessage()
@@ -377,6 +377,12 @@ extension AccessoryManager {
 					do {
 						try context.save()
 						Logger.data.info("💾 Saved a new sent message from \(self.activeDeviceNum?.toHex() ?? "0", privacy: .public) to \(toUserNum.toHex(), privacy: .public)")
+						MeshReliableTelemetry.shared.record(.messageSent, details: [
+							"to": "\(toUserNum)",
+							"from": "\(fromUserNum)",
+							"messageId": "\(newMessage.messageId)",
+							"channel": "\(channel)"
+						])
 						// Donate outgoing message to SiriKit for CarPlay
 						if !isEmoji {
 							#if os(iOS)
@@ -517,32 +523,6 @@ extension AccessoryManager {
 				let logString = String.localizedStringWithFormat("Sent a Channel for: %@ Channel Index %d".localized, String(deviceNum), chan.index)
 				try await send(toRadio, debugDescription: logString)
 				await MeshPackets.shared.channelPacket(channel: chan, fromNum: self.activeDeviceNum ?? 0)
-			}
-			if !addChannels {
-				// Save the LoRa Config and the device will reboot
-				var adminPacket = AdminMessage()
-				adminPacket.setConfig.lora = channelSet.loraConfig
-				adminPacket.setConfig.lora.configOkToMqtt = okToMQTT // Preserve users okToMQTT choice
-				var meshPacket: MeshPacket = MeshPacket()
-				meshPacket.to = UInt32(deviceNum)
-				meshPacket.from	= UInt32(deviceNum)
-				meshPacket.id = UInt32.random(in: UInt32(UInt8.max)..<UInt32.max)
-				meshPacket.priority =  MeshPacket.Priority.reliable
-				meshPacket.wantAck = true
-				meshPacket.channel = 0
-				var dataMessage = DataMessage()
-				guard let adminData: Data = try? adminPacket.serializedData() else {
-					throw AccessoryError.ioFailed("sendReboot: Unable to serialize Admin packet")
-				}
-				dataMessage.payload = adminData
-				dataMessage.portnum = PortNum.adminApp
-				meshPacket.decoded = dataMessage
-				var toRadio: ToRadio!
-				toRadio = ToRadio()
-				toRadio.packet = meshPacket
-				
-				let logString = String.localizedStringWithFormat("Sent a LoRa.Config for: %@".localized, String(deviceNum))
-				try await send(toRadio, debugDescription: logString)
 			}
 			if !addChannels {
 				// Save the LoRa Config and the device will reboot
@@ -818,7 +798,9 @@ extension AccessoryManager {
 		try await send(toRadio, debugDescription: logString)
 
 			do {
-				context.delete(node.user!)
+				if let user = node.user {
+					context.delete(user)
+				}
 				context.delete(node)
 				try context.save()
 			} catch {

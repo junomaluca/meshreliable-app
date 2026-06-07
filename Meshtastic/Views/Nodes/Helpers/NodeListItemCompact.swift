@@ -79,8 +79,8 @@ struct NodeListItemCompact: View {
 				desc += ", battery \(battery)%"
 			}
 		}
-		if !isDirectlyConnected, let (lastPosition, myCoord) = cachedLocationData {
-			let nodeCoord = CLLocation(latitude: lastPosition.nodeCoordinate!.latitude, longitude: lastPosition.nodeCoordinate!.longitude)
+		if !isDirectlyConnected, let (lastPosition, myCoord) = cachedLocationData, let nodeCoordinate = lastPosition.nodeCoordinate {
+			let nodeCoord = CLLocation(latitude: nodeCoordinate.latitude, longitude: nodeCoordinate.longitude)
 			let metersAway = nodeCoord.distance(from: myCoord)
 			let formattedDistance = Self.distanceFormatter.string(fromMeters: metersAway)
 			desc += ", " + String(format: "%@: %@", "Distance".localized, formattedDistance)
@@ -212,8 +212,8 @@ struct NodeListItemCompact: View {
 					// Distance, bearing, hops, signal, role, telemetry row
 					HStack(alignment: .center, spacing: 6) {
 						if shouldShowLocation && connectedNode != node.num {
-							if let (lastPostion, myCoord) = cachedLocationData {
-								let nodeCoord = CLLocation(latitude: lastPostion.nodeCoordinate!.latitude, longitude: lastPostion.nodeCoordinate!.longitude)
+							if let (lastPostion, myCoord) = cachedLocationData, let nodeCoordinate = lastPostion.nodeCoordinate {
+								let nodeCoord = CLLocation(latitude: nodeCoordinate.latitude, longitude: nodeCoordinate.longitude)
 								let metersAway = nodeCoord.distance(from: myCoord)
 								DistanceText(meters: metersAway, isCompact: true)
 									.font(.callout)

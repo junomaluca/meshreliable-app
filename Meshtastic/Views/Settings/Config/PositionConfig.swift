@@ -501,7 +501,8 @@ struct PositionConfig: View {
 			  nodeNum > 0 else { return }
 		Task {
 			do {
-				try await accessoryManager.setFixedPosition(fromUser: node!.user!, channel: 0)
+				guard let nodeUser = node?.user else { return }
+				try await accessoryManager.setFixedPosition(fromUser: nodeUser, channel: 0)
 			} catch {
 				Logger.mesh.error("Set Position Failed")
 			}
@@ -521,7 +522,8 @@ struct PositionConfig: View {
 			  nodeNum > 0 else { return }
 		Task {
 			do {
-				try await accessoryManager.removeFixedPosition(fromUser: node!.user!, channel: 0)
+				guard let nodeUser = node?.user else { return }
+				try await accessoryManager.removeFixedPosition(fromUser: nodeUser, channel: 0)
 			} catch {
 				Logger.mesh.error("Remove Fixed Position Failed")
 			}

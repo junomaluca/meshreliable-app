@@ -63,8 +63,8 @@ struct NodeListItem: View {
 				desc += ", battery \(battery)%"
 			}
 		}
-		if !isDirectlyConnected, let (lastPosition, myCoord) = cachedLocationData {
-			let nodeCoord = CLLocation(latitude: lastPosition.nodeCoordinate!.latitude, longitude: lastPosition.nodeCoordinate!.longitude)
+		if !isDirectlyConnected, let (lastPosition, myCoord) = cachedLocationData, let nodeCoordinate = lastPosition.nodeCoordinate {
+			let nodeCoord = CLLocation(latitude: nodeCoordinate.latitude, longitude: nodeCoordinate.longitude)
 			let metersAway = nodeCoord.distance(from: myCoord)
 			let formattedDistance = Self.distanceFormatter.string(fromMeters: metersAway)
 			desc += ", " + String(format: "%@: %@", "Distance".localized, formattedDistance)
@@ -96,6 +96,7 @@ struct NodeListItem: View {
 		return desc
 	}
 	
+	@Environment(\.modelContext) private var nodeContext
 	@Bindable var node: NodeInfoEntity
 	var isDirectlyConnected: Bool
 	var connectedNode: Int64
@@ -170,7 +171,7 @@ struct NodeListItem: View {
 									imageColor: .green,
 									text: "Connected".localized)
 					}
-					if node.lastHeard?.timeIntervalSince1970 ?? 0 > 0 && node.lastHeard! < Calendar.current.date(byAdding: .year, value: 1, to: Date())! {
+					if let lastHeard = node.lastHeard, lastHeard.timeIntervalSince1970 > 0, let futureDate = Calendar.current.date(byAdding: .year, value: 1, to: Date()), lastHeard < futureDate {
 						IconAndText(systemName: node.isOnline ? "checkmark.circle.fill" : "moon.circle.fill",
 									imageColor: node.isOnline ? .green : .orange,
 							text: node.lastHeard?.formatted(date: .numeric, time: .shortened) ?? "Unknown Age".localized)
@@ -191,8 +192,8 @@ struct NodeListItem: View {
 					
 					if connectedNode != node.num {
 						HStack {
-							if let (lastPostion, myCoord) = cachedLocationData {
-								let nodeCoord = CLLocation(latitude: lastPostion.nodeCoordinate!.latitude, longitude: lastPostion.nodeCoordinate!.longitude)
+							if let (lastPostion, myCoord) = cachedLocationData, let nodeCoordinate = lastPostion.nodeCoordinate {
+							let nodeCoord = CLLocation(latitude: nodeCoordinate.latitude, longitude: nodeCoordinate.longitude)
 								let metersAway = nodeCoord.distance(from: myCoord)
 								Image(systemName: "lines.measurement.horizontal")
 									.font(.callout)
@@ -225,6 +226,12 @@ struct NodeListItem: View {
 										renderingMode: .multicolor,
 										text: "MQTT")
 						}
+					}
+					if !isDirectlyConnected, node.loRaConfig?.regionCode ?? 0 != 0 {
+						BandBadge(
+							node: node,
+							connectedNode: getNodeInfo(id: connectedNode, context: nodeContext)
+						)
 					}
 					if cachedHasLogs {
 						HStack {

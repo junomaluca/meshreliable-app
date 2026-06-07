@@ -62,9 +62,11 @@ enum SettingsNavigationState: String {
 	case takConfig
 	case tools
 	case coreDataBrowser
+	case packetLog
 	case localMeshDiscovery
 	case helpDocs
 	case backupManagement
+	case meshReliableDebug
 }
 
 struct NavigationState: Hashable {

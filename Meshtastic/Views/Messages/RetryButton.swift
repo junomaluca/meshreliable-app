@@ -18,6 +18,7 @@ struct RetryButton: View {
 				.frame(height: 30)
 				.padding(.top, 5)
 		}
+		.accessibilityLabel("Message not delivered. Tap to retry.")
 		.confirmationDialog(
 			"This message was likely not delivered.",
 			isPresented: $isShowingConfirmation,
@@ -33,28 +34,22 @@ struct RetryButton: View {
 				let channel = message.channel
 				let isEmoji = message.isEmoji
 				let replyID = message.replyID
-				context.delete(message)
-				do {
-					try context.save()
-				} catch {
-					Logger.data.error("Failed to delete message \(messageID, privacy: .public): \(error.localizedDescription, privacy: .public)")
-				}
 				Task {
 					do {
 						try await accessoryManager.sendMessage(message: payload, toUserNum: userNum, channel: channel,
 															   isEmoji: isEmoji, replyID: replyID)
-						if case let .channel(channel) = destination {
-							// We must refresh the channel to trigger a view update since its relationship
-							// to messages is via a weak fetched property which is not updated by
-							// `bleManager.sendMessage` unlike the user entity.
-							Task { @MainActor in
+						// Only delete the old message after successful resend
+						await MainActor.run {
+							context.delete(message)
+							do {
+								try context.save()
+							} catch {
+								Logger.data.error("Failed to delete old message \(messageID, privacy: .public): \(error.localizedDescription, privacy: .public)")
 							}
 						}
 					} catch {
-						// Best effort
-						Logger.services.warning("Failed to resend message \(messageID, privacy: .public)")
+						Logger.services.warning("Failed to resend message \(messageID, privacy: .public): \(error.localizedDescription, privacy: .public)")
 					}
-
 				}
 			}
 			Button("Cancel", role: .cancel) {}

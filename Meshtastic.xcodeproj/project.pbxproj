@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		MR003IIB0000002000000001 /* InlineImageBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = MR003IIB0000001000000001 /* InlineImageBubble.swift */; };
+		MR003IVB0000002000000001 /* InlineVoiceMemoBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = MR003IVB0000001000000001 /* InlineVoiceMemoBubble.swift */; };
 		0B9642EC0DB1B971CB26E8AE /* RadarSweepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E06A9BCC789BD452DFA9CFB /* RadarSweepView.swift */; };
 		102B5EAB2E172F41003D191E /* DatadogCore in Frameworks */ = {isa = PBXBuildFile; productRef = 102B5EAA2E172F41003D191E /* DatadogCore */; };
 		102B5EAD2E172F41003D191E /* DatadogCrashReporting in Frameworks */ = {isa = PBXBuildFile; productRef = 102B5EAC2E172F41003D191E /* DatadogCrashReporting */; };
@@ -20,6 +22,7 @@
 		10D80CF7AD2B4269BE0A4933 /* MeshtasticSchema.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38DF7D72AA0A450399DBC592 /* MeshtasticSchema.swift */; };
 		1396606FC903D7DA662B6326 /* DiscoveryModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64C6057F9508D4356DAF411F /* DiscoveryModelTests.swift */; };
 		15E39A0B620BDB07EF3774E6 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 789018CEA54818CC42671211 /* Foundation.framework */; };
+		1F1E5E7BBD1D58A91ED92E7F /* BandBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E07962A93F70F396E01B5ED /* BandBadge.swift */; };
 		230A98402EF86A44004D87F1 /* AsyncCentral.swift in Sources */ = {isa = PBXBuildFile; fileRef = 230A983F2EF86A44004D87F1 /* AsyncCentral.swift */; };
 		230A98422EF86AA9004D87F1 /* ESP32BLEOTAViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 230A98412EF86AA9004D87F1 /* ESP32BLEOTAViewModel.swift */; };
 		230BC3972E31071E0046BF2A /* AccessoryManager+Discovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 230BC3962E31071E0046BF2A /* AccessoryManager+Discovery.swift */; };
@@ -79,7 +82,9 @@
 		23AD54692E2A6EAA0046E9AB /* AccessoryManager+FromRadio.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23AD54682E2A6EAA0046E9AB /* AccessoryManager+FromRadio.swift */; };
 		23AD546B2E2AA5A80046E9AB /* AccessoryManager+ToRadio.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23AD546A2E2AA5A80046E9AB /* AccessoryManager+ToRadio.swift */; };
 		23AD546D2E2AE9630046E9AB /* AccessoryManager+MQTT.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23AD546C2E2AE9630046E9AB /* AccessoryManager+MQTT.swift */; };
+		AA00000000000000000002 /* PacketLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000000000000001 /* PacketLogView.swift */; };
 		23C2BD292EE87D0300F6A997 /* CoreDataBrowser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23C2BD282EE87D0300F6A997 /* CoreDataBrowser.swift */; };
+		23C2BD2C2EE87D0300F6A998 /* MeshReliableDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23C2BD2D2EE87D0300F6A998 /* MeshReliableDebugView.swift */; };
 		23C2BD2B2EE8993800F6A997 /* DeviceHardwareImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23C2BD2A2EE8993800F6A997 /* DeviceHardwareImage.swift */; };
 		23C2BE252EE9A8E100F6A997 /* SupportedHardwareBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23C2BE242EE9A8E100F6A997 /* SupportedHardwareBadge.swift */; };
 		23C2BE272EE9F4BD00F6A997 /* DeviceHardwareEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23C2BE262EE9F4BD00F6A997 /* DeviceHardwareEntity.swift */; };
@@ -123,6 +128,7 @@
 		48E682ECE71246C3BFBD6B8F /* ChannelEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45E6EDE744E3446FA1084499 /* ChannelEntity.swift */; };
 		59047228139F1640ACFBDD82 /* MeshtasticUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A0DE121BF55270CFD66B231 /* MeshtasticUITests.swift */; };
 		5D3AFC6F08ED4C909C830C55 /* TelemetryEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31483AF5F5354D3481698E32 /* TelemetryEntity.swift */; };
+		5FDC0F3984B32F0E99A69D21 /* ImagePickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4462CF295D47885A945FFBC /* ImagePickerSheet.swift */; };
 		6467579F9E9E4B0EAA009615 /* MeshtasticSchemaV1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05E0BD1A81CF4F6A90D56CE3 /* MeshtasticSchemaV1.swift */; };
 		655AF7816E76D5F310DF87A6 /* FountainCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F203877F307073096C89179 /* FountainCodec.swift */; };
 		6AC10554C1BCC1DF509C85EE /* NodeListHelp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A96594950B87789C0BB96DB /* NodeListHelp.swift */; };
@@ -152,6 +158,7 @@
 		9BC51D7EF97090D149658843 /* SetMessageAttributeIntentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA6A18109101FA06A9FBBFB /* SetMessageAttributeIntentHandler.swift */; };
 		9C744FC4C34549008EADCA4E /* NodeInfoEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7101240749F24E96835A040A /* NodeInfoEntity.swift */; };
 		A5339E2F74E83F8FC41EEE33 /* TAKServerConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0618E6D0DF90B74EE32E6C06 /* TAKServerConfig.swift */; };
+		A99CDC579C1D0A1105F22738 /* ImageButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DB2ADA02D09346F82600C6A /* ImageButton.swift */; };
 		AA000001303050030000B001 /* Color+Brand.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000002303050030000B001 /* Color+Brand.swift */; };
 		AA0001012E2730EC00600001 /* ConnectViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00010022E2730EC0060000 /* ConnectViewTests.swift */; };
 		AA0001032F07A4B000600001 /* TAKModuleConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001042F07A4B000600001 /* TAKModuleConfig.swift */; };
@@ -192,6 +199,7 @@
 		B16C760DB291CFAB5335EADB /* TAKCertificateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09936BEBD6D82479B2360FDC /* TAKCertificateManager.swift */; };
 		B399E8A42B6F486400E4488E /* RetryButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B399E8A32B6F486400E4488E /* RetryButton.swift */; };
 		B3E905B12B71F7F300654D07 /* TextMessageField.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3E905B02B71F7F300654D07 /* TextMessageField.swift */; };
+		B8E078590C3C07CE0E0DFDD9 /* AddMemberSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95CD4E609067F6DEC963A18 /* AddMemberSheet.swift */; };
 		B96123C9177242AFA768AA8F /* DeviceMetadataEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 509A1C42A695463093654617 /* DeviceMetadataEntity.swift */; };
 		BC10380F2DD4334400B00BFA /* AddContactIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC10380E2DD4333C00B00BFA /* AddContactIntent.swift */; };
 		BC6B45FF2CB2F98900723CEB /* SaveChannelSettingsIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC6B45FE2CB2F98900723CEB /* SaveChannelSettingsIntent.swift */; };
@@ -468,7 +476,7 @@
 		E340A7CA75194A49AB8763C7 /* WaypointEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = E98797BFD67F449B9ACCEDA7 /* WaypointEntity.swift */; };
 		E3ED80145D0E873011982556 /* TAKServerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B37CCEE8B44A4BA123ED118 /* TAKServerManager.swift */; };
 		EE7E2D900ACAC8053153354A /* DiscoveryScanEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC99855DBF52EBBBE07CEBA9 /* DiscoveryScanEngine.swift */; };
-		F1A2B3C4D5E6F7A800000002 /* Model+Sendable.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A2B3C4D5E6F7A800000001 /* Model+Sendable.swift */; };
+
 		FE508F9AF5AD5DA20AA64DBF /* AccessoryManager+TAK.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82232A3CF2DD284ED5B9B8ED /* AccessoryManager+TAK.swift */; };
 		MR001SVC0000002000000001 /* MeshReliableService.swift in Sources */ = {isa = PBXBuildFile; fileRef = MR001SVC0000001000000001 /* MeshReliableService.swift */; };
 		MR001VMB0000002000000001 /* VoiceMemoButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = MR001VMB0000001000000001 /* VoiceMemoButton.swift */; };
@@ -479,6 +487,9 @@
 		MR002GML0000002000000001 /* GroupList.swift in Sources */ = {isa = PBXBuildFile; fileRef = MR002GML0000001000000001 /* GroupList.swift */; };
 		MR002GMS0000002000000001 /* GroupMessageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = MR002GMS0000001000000001 /* GroupMessageService.swift */; };
 		MR002JGS0000002000000001 /* JoinGroupSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = MR002JGS0000001000000001 /* JoinGroupSheet.swift */; };
+		MR003TEL0000002000000001 /* MeshReliableTelemetry.swift in Sources */ = {isa = PBXBuildFile; fileRef = MR003TEL0000001000000001 /* MeshReliableTelemetry.swift */; };
+		MR004DBG0000002000000001 /* DebugHTTPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = MR004DBG0000001000000001 /* DebugHTTPServer.swift */; };
+		MR005DEF0000002000000001 /* MeshReliableDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = MR005DEF0000001000000001 /* MeshReliableDefaults.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -539,6 +550,7 @@
 		108FFECC2DD4005600BFAA81 /* NodeInfoEntityToNodeInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeInfoEntityToNodeInfo.swift; sourceTree = "<group>"; };
 		1CAEAD87807B4F34820A60C2 /* MeshtasticMigrationPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshtasticMigrationPlan.swift; sourceTree = "<group>"; };
 		1D5AD8037A0D583C614B0597 /* Tools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tools.swift; sourceTree = "<group>"; };
+		1DB2ADA02D09346F82600C6A /* ImageButton.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ImageButton.swift; sourceTree = "<group>"; };
 		230A983F2EF86A44004D87F1 /* AsyncCentral.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncCentral.swift; sourceTree = "<group>"; };
 		230A98412EF86AA9004D87F1 /* ESP32BLEOTAViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ESP32BLEOTAViewModel.swift; sourceTree = "<group>"; };
 		230BC3962E31071E0046BF2A /* AccessoryManager+Discovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AccessoryManager+Discovery.swift"; sourceTree = "<group>"; };
@@ -596,7 +608,9 @@
 		23AD54682E2A6EAA0046E9AB /* AccessoryManager+FromRadio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AccessoryManager+FromRadio.swift"; sourceTree = "<group>"; };
 		23AD546A2E2AA5A80046E9AB /* AccessoryManager+ToRadio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AccessoryManager+ToRadio.swift"; sourceTree = "<group>"; };
 		23AD546C2E2AE9630046E9AB /* AccessoryManager+MQTT.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AccessoryManager+MQTT.swift"; sourceTree = "<group>"; };
+		AA00000000000000000001 /* PacketLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PacketLogView.swift; sourceTree = "<group>"; };
 		23C2BD282EE87D0300F6A997 /* CoreDataBrowser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataBrowser.swift; sourceTree = "<group>"; };
+		23C2BD2D2EE87D0300F6A998 /* MeshReliableDebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshReliableDebugView.swift; sourceTree = "<group>"; };
 		23C2BD2A2EE8993800F6A997 /* DeviceHardwareImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceHardwareImage.swift; sourceTree = "<group>"; };
 		23C2BE242EE9A8E100F6A997 /* SupportedHardwareBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportedHardwareBadge.swift; sourceTree = "<group>"; };
 		23C2BE262EE9F4BD00F6A997 /* DeviceHardwareEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceHardwareEntity.swift; sourceTree = "<group>"; };
@@ -651,6 +665,7 @@
 		6DA39D8D2A92DC52007E311C /* MeshtasticAppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshtasticAppDelegate.swift; sourceTree = "<group>"; };
 		6DEDA5592A957B8E00321D2E /* DetectionSensorLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionSensorLog.swift; sourceTree = "<group>"; };
 		6DEDA55B2A9592F900321D2E /* MessageEntityExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageEntityExtension.swift; sourceTree = "<group>"; };
+		6E07962A93F70F396E01B5ED /* BandBadge.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BandBadge.swift; sourceTree = "<group>"; };
 		7101240749F24E96835A040A /* NodeInfoEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeInfoEntity.swift; sourceTree = "<group>"; };
 		748E4806582595DE80D455CD /* CoTXMLParser.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CoTXMLParser.swift; sourceTree = "<group>"; };
 		789018CEA54818CC42671211 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
@@ -722,6 +737,7 @@
 		AF19C19E9E7EE08A3462338E /* DiscoveryPresetResultEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoveryPresetResultEntity.swift; sourceTree = "<group>"; };
 		B399E8A32B6F486400E4488E /* RetryButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetryButton.swift; sourceTree = "<group>"; };
 		B3E905B02B71F7F300654D07 /* TextMessageField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextMessageField.swift; sourceTree = "<group>"; };
+		B95CD4E609067F6DEC963A18 /* AddMemberSheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AddMemberSheet.swift; sourceTree = "<group>"; };
 		B990EE65E4D5CABBA4DD8DC2 /* MapWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapWindow.swift; sourceTree = "<group>"; };
 		BC10380E2DD4333C00B00BFA /* AddContactIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddContactIntent.swift; sourceTree = "<group>"; };
 		BC6B45FE2CB2F98900723CEB /* SaveChannelSettingsIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveChannelSettingsIntent.swift; sourceTree = "<group>"; };
@@ -741,6 +757,7 @@
 		BEC437CA60D4A60C870E63CA /* DiscoveredNodeEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoveredNodeEntity.swift; sourceTree = "<group>"; };
 		CA63632A10C2DD076FA222BE /* IntentHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentHandler.swift; sourceTree = "<group>"; };
 		CDA6A18109101FA06A9FBBFB /* SetMessageAttributeIntentHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetMessageAttributeIntentHandler.swift; sourceTree = "<group>"; };
+		D4462CF295D47885A945FFBC /* ImagePickerSheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ImagePickerSheet.swift; sourceTree = "<group>"; };
 		D8D66A4063FE4E868CD30D3C /* TraceRouteModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TraceRouteModels.swift; sourceTree = "<group>"; };
 		D93068D22B8129510066FBC8 /* MessageContextMenuItems.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageContextMenuItems.swift; sourceTree = "<group>"; };
 		D93068D42B812B700066FBC8 /* MessageDestination.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageDestination.swift; sourceTree = "<group>"; };
@@ -1052,7 +1069,7 @@
 		DDFEB3BA29900C1200EE7472 /* CurrentConditionsCompact.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentConditionsCompact.swift; sourceTree = "<group>"; };
 		DDFFA7462B3A7F3C004730DB /* Bundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bundle.swift; sourceTree = "<group>"; };
 		E98797BFD67F449B9ACCEDA7 /* WaypointEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaypointEntity.swift; sourceTree = "<group>"; };
-		F1A2B3C4D5E6F7A800000001 /* Model+Sendable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Model+Sendable.swift"; sourceTree = "<group>"; };
+
 		F1B6FB13C4D4E03503BB1DF8 /* DiscoverySummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoverySummaryView.swift; sourceTree = "<group>"; };
 		F3204EF969484E549C139730 /* MessageEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageEntity.swift; sourceTree = "<group>"; };
 		F5CA8BAC814CF82E127EEABF /* DiscoveryScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoveryScanView.swift; sourceTree = "<group>"; };
@@ -1063,9 +1080,14 @@
 		MR001VMR0000001000000001 /* VoiceMemoRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceMemoRecorder.swift; sourceTree = "<group>"; };
 		MR002CGS0000001000000001 /* CreateGroupSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateGroupSheet.swift; sourceTree = "<group>"; };
 		MR002GCV0000001000000001 /* GroupConversationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupConversationView.swift; sourceTree = "<group>"; };
+		MR003IIB0000001000000001 /* InlineImageBubble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InlineImageBubble.swift; sourceTree = "<group>"; };
+		MR003IVB0000001000000001 /* InlineVoiceMemoBubble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InlineVoiceMemoBubble.swift; sourceTree = "<group>"; };
 		MR002GML0000001000000001 /* GroupList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupList.swift; sourceTree = "<group>"; };
 		MR002GMS0000001000000001 /* GroupMessageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupMessageService.swift; sourceTree = "<group>"; };
 		MR002JGS0000001000000001 /* JoinGroupSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JoinGroupSheet.swift; sourceTree = "<group>"; };
+		MR003TEL0000001000000001 /* MeshReliableTelemetry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshReliableTelemetry.swift; sourceTree = "<group>"; };
+		MR004DBG0000001000000001 /* DebugHTTPServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugHTTPServer.swift; sourceTree = "<group>"; };
+		MR005DEF0000001000000001 /* MeshReliableDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshReliableDefaults.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -1344,6 +1366,7 @@
 			isa = PBXGroup;
 			children = (
 				23C2BD282EE87D0300F6A997 /* CoreDataBrowser.swift */,
+				23C2BD2D2EE87D0300F6A998 /* MeshReliableDebugView.swift */,
 			);
 			path = Debugging;
 			sourceTree = "<group>";
@@ -1557,12 +1580,24 @@
 			path = MeshtasticTests;
 			sourceTree = "<group>";
 		};
+		58C66441D7F1A485B32F9594 /* ImagePicker */ = {
+			isa = PBXGroup;
+			children = (
+				D4462CF295D47885A945FFBC /* ImagePickerSheet.swift */,
+			);
+			name = ImagePicker;
+			path = ImagePicker;
+			sourceTree = "<group>";
+		};
 		5EC3D356BFF0031F67B3499A /* Services */ = {
 			isa = PBXGroup;
 			children = (
 				FC99855DBF52EBBBE07CEBA9 /* DiscoveryScanEngine.swift */,
 				MR001SVC0000001000000001 /* MeshReliableService.swift */,
 				MR002GMS0000001000000001 /* GroupMessageService.swift */,
+				MR003TEL0000001000000001 /* MeshReliableTelemetry.swift */,
+				MR004DBG0000001000000001 /* DebugHTTPServer.swift */,
+				MR005DEF0000001000000001 /* MeshReliableDefaults.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -1686,6 +1721,7 @@
 				D9C983A12B79D1A600BDBE6A /* RequestPositionButton.swift */,
 				D9C9839C2B79CFD700BDBE6A /* TextMessageSize.swift */,
 				MR001VMB0000001000000001 /* VoiceMemoButton.swift */,
+				1DB2ADA02D09346F82600C6A /* ImageButton.swift */,
 			);
 			path = TextMessageField;
 			sourceTree = "<group>";
@@ -1763,6 +1799,7 @@
 				DD97E96728EFE9A00056DDA4 /* About.swift */,
 				DDD5BB152C28B1E4007E03CA /* AppData.swift */,
 				DDD5BB082C285DDC007E03CA /* AppLog.swift */,
+				AA00000000000000000001 /* PacketLogView.swift */,
 				DD4A911D2708C65400501B7E /* AppSettings.swift */,
 				ABB99DEA2E2EA1C500CFBD05 /* AppIconPicker.swift */,
 				DDA0B6B1294CDC55001356EC /* Channels.swift */,
@@ -2067,7 +2104,7 @@
 				F3204EF969484E549C139730 /* MessageEntity.swift */,
 				DC5970BC1CAF4B66999C7248 /* MyInfoEntity.swift */,
 				7101240749F24E96835A040A /* NodeInfoEntity.swift */,
-				F1A2B3C4D5E6F7A800000001 /* Model+Sendable.swift */,
+
 				A97241903A924144A3EEB679 /* PositionEntity.swift */,
 				DB55D64F064C45ADBD31ABF8 /* RouteModels.swift */,
 				31483AF5F5354D3481698E32 /* TelemetryEntity.swift */,
@@ -2121,6 +2158,10 @@
 				MR002CGS0000001000000001 /* CreateGroupSheet.swift */,
 				MR002GCV0000001000000001 /* GroupConversationView.swift */,
 				MR002JGS0000001000000001 /* JoinGroupSheet.swift */,
+				58C66441D7F1A485B32F9594 /* ImagePicker */,
+				B95CD4E609067F6DEC963A18 /* AddMemberSheet.swift */,
+				MR003IIB0000001000000001 /* InlineImageBubble.swift */,
+				MR003IVB0000001000000001 /* InlineVoiceMemoBubble.swift */,
 			);
 			path = Messages;
 			sourceTree = "<group>";
@@ -2228,6 +2269,7 @@
 				231A53772E69ADB900216B99 /* NodeFilterParameters.swift */,
 				251926882C3BAF2E00249DF5 /* Actions */,
 				BCDDFA992DBB180D0065189C /* ScrollToBottomButton.swift */,
+				6E07962A93F70F396E01B5ED /* BandBadge.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -2668,7 +2710,7 @@
 				D75A5D73360C42D6B0CB2894 /* MessageEntity.swift in Sources */,
 				85D0F28AE7CE44C39B6BEBF8 /* MyInfoEntity.swift in Sources */,
 				9C744FC4C34549008EADCA4E /* NodeInfoEntity.swift in Sources */,
-				F1A2B3C4D5E6F7A800000002 /* Model+Sendable.swift in Sources */,
+
 				D02589957BD040969FCB8663 /* PositionEntity.swift in Sources */,
 				93FFCD83202042FB85B47CFD /* RouteModels.swift in Sources */,
 				5D3AFC6F08ED4C909C830C55 /* TelemetryEntity.swift in Sources */,
@@ -2813,7 +2855,9 @@
 				DD3619152B1EF9F900C41C8C /* LocationsHandler.swift in Sources */,
 				DD6F65792C6EADE60053C113 /* DirectMessagesHelp.swift in Sources */,
 				23148E302EE1CCE500F0DB2C /* MeshtasticAPI.swift in Sources */,
+				AA00000000000000000002 /* PacketLogView.swift in Sources */,
 				23C2BD292EE87D0300F6A997 /* CoreDataBrowser.swift in Sources */,
+				23C2BD2C2EE87D0300F6A998 /* MeshReliableDebugView.swift in Sources */,
 				233E99B62D849C3D00CC3A77 /* WeatherConditionsCompactWidget.swift in Sources */,
 				25F5D5C02C3F6DA6008036E3 /* Router.swift in Sources */,
 				2346A7192E2FB9A300CB9239 /* SerialConnection.swift in Sources */,
@@ -3007,6 +3051,9 @@
 				6AC10554C1BCC1DF509C85EE /* NodeListHelp.swift in Sources */,
 				DD6F657D2C6EC2910053C113 /* HelpItem.swift in Sources */,
 				MR001SVC0000002000000001 /* MeshReliableService.swift in Sources */,
+				MR003TEL0000002000000001 /* MeshReliableTelemetry.swift in Sources */,
+				MR004DBG0000002000000001 /* DebugHTTPServer.swift in Sources */,
+				MR005DEF0000002000000001 /* MeshReliableDefaults.swift in Sources */,
 				MR001VMP0000002000000001 /* VoiceMemoPlayer.swift in Sources */,
 				MR001VMR0000002000000001 /* VoiceMemoRecorder.swift in Sources */,
 				MR001VMB0000002000000001 /* VoiceMemoButton.swift in Sources */,
@@ -3015,6 +3062,12 @@
 				MR002CGS0000002000000001 /* CreateGroupSheet.swift in Sources */,
 				MR002GCV0000002000000001 /* GroupConversationView.swift in Sources */,
 				MR002JGS0000002000000001 /* JoinGroupSheet.swift in Sources */,
+				A99CDC579C1D0A1105F22738 /* ImageButton.swift in Sources */,
+				5FDC0F3984B32F0E99A69D21 /* ImagePickerSheet.swift in Sources */,
+				B8E078590C3C07CE0E0DFDD9 /* AddMemberSheet.swift in Sources */,
+				1F1E5E7BBD1D58A91ED92E7F /* BandBadge.swift in Sources */,
+				MR003IIB0000002000000001 /* InlineImageBubble.swift in Sources */,
+				MR003IVB0000002000000001 /* InlineVoiceMemoBubble.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3232,7 +3285,7 @@
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_STRICT_CONCURRENCY = targeted;
+				SWIFT_STRICT_CONCURRENCY = minimal;
 				SWIFT_VERSION = 6.0;
 			};
 			name = Debug;
@@ -3296,7 +3349,7 @@
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
-				SWIFT_STRICT_CONCURRENCY = targeted;
+				SWIFT_STRICT_CONCURRENCY = minimal;
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2,6";
 				VALIDATE_PRODUCT = YES;

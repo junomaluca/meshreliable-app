@@ -94,6 +94,9 @@ struct MeshtasticAppleApp: App {
 			// Initialize map data manager
 			MapDataManager.shared.initialize()
 
+			// Start debug HTTP server for packet monitoring
+			DebugHTTPServer.shared.start()
+
 
 #if DEBUG
 			// Show tips in development

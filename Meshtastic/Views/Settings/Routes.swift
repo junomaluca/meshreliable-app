@@ -60,14 +60,14 @@ struct Routes: View {
 							guard let fileContent = String(data: try Data(contentsOf: selectedFile), encoding: .utf8) else { return }
 							let routeName = selectedFile.lastPathComponent.dropLast(4)
 							let lines = fileContent.components(separatedBy: "\n")
-							let headers = lines.first?.components(separatedBy: ",")
+							guard let headers = lines.first?.components(separatedBy: ",") else { return }
 							var latIndex = -1
 							var longIndex = -1
-							for index in headers!.indices {
-								Logger.services.debug("\(index, privacy: .public): \( headers![index], privacy: .public)")
-								if headers![index].trimmingCharacters(in: .whitespaces) == "Latitude" {
+							for index in headers.indices {
+								Logger.services.debug("\(index, privacy: .public): \( headers[index], privacy: .public)")
+								if headers[index].trimmingCharacters(in: .whitespaces) == "Latitude" {
 									latIndex = index
-								} else if headers![index].trimmingCharacters(in: .whitespaces) == "Longitude" {
+								} else if headers[index].trimmingCharacters(in: .whitespaces) == "Longitude" {
 									longIndex = index
 								}
 							}
@@ -104,8 +104,8 @@ struct Routes: View {
 							}
 
 						} catch {
-							// TODO: deal with errors
-							Logger.services.error("\(error.localizedDescription, privacy: .public)")
+							Logger.services.error("Route file read error: \(error.localizedDescription, privacy: .public)")
+							isShowingBadFileAlert = true
 						}
 
 					} catch {
@@ -302,6 +302,7 @@ struct Routes: View {
 							Logger.services.info("Route log download succeeded.")
 						case .failure(let error):
 							Logger.services.error("Route log download failed: \(error.localizedDescription, privacy: .public).")
+							isShowingBadFileAlert = true
 						}
 					}
 				)

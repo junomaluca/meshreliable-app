@@ -218,9 +218,9 @@ struct NetworkConfig: View {
 			// Need to request a NetworkConfig from the remote node before allowing changes
 			if accessoryManager.isConnected && node?.networkConfig == nil {
 				Logger.mesh.info("empty network config")
-				if let deviceNum = accessoryManager.activeDeviceNum, let connectedNode = getNodeInfo(id: deviceNum, context: context), node != nil {
+				if let deviceNum = accessoryManager.activeDeviceNum, let connectedNode = getNodeInfo(id: deviceNum, context: context), let node, let connectedUser = connectedNode.user, let nodeUser = node.user {
 					Task {
-						try await accessoryManager.requestNetworkConfig(fromUser: connectedNode.user!, toUser: node!.user!)
+						try await accessoryManager.requestNetworkConfig(fromUser: connectedUser, toUser: nodeUser)
 					}
 				}
 			}

@@ -15,6 +15,7 @@ struct AlertButton: View {
 				.foregroundColor(compact ? .primary : .accentColor)
 		}
 		.frame(minWidth: compact ? 36 : nil, minHeight: compact ? 36 : nil)
+		.accessibilityLabel("Send Alert")
 	}
 }
 

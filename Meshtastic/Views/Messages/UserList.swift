@@ -9,6 +9,7 @@ import SwiftUI
 @preconcurrency import SwiftData
 import OSLog
 import TipKit
+import CoreLocation
 
 struct UserList: View {
 
@@ -79,6 +80,8 @@ private struct FilteredUserList: View {
 
 	@State private var isPresentingDeleteUserMessagesConfirm: Bool = false
 	@State private var userToDeleteMessages: UserEntity?
+	@State private var cachedMessageInfo: [Int64: (mostRecent: MessageEntity?, unreadCount: Int)] = [:]
+	@State private var messageInfoNeedsRefresh: Bool = true
 	private var filters: NodeFilterParameters
 
 	init(withFilters: NodeFilterParameters, node: Binding<NodeInfoEntity?>, userSelection: Binding<UserEntity?>) {
@@ -88,18 +91,70 @@ private struct FilteredUserList: View {
 	}
 
 	private var users: [UserEntity] {
-		allUsers.filter { filters.matches(user: $0) }
+		let filtered = allUsers.filter { filters.matches(user: $0) }
+		let myLocation = LocationsHandler.currentPreciseLocation
+
+		return filtered.sorted { a, b in
+			// Tier 1: Users with recent messages come first, sorted by recency
+			let aHasMessage = a.lastMessage != nil
+			let bHasMessage = b.lastMessage != nil
+
+			if aHasMessage != bHasMessage {
+				return aHasMessage
+			}
+			if aHasMessage && bHasMessage {
+				let aTime = a.lastMessage!
+				let bTime = b.lastMessage!
+				if aTime != bTime {
+					return aTime > bTime
+				}
+			}
+
+			// Tier 2: Geographic proximity
+			if let myLoc = myLocation {
+				let aDist = Self.distanceToUser(a, from: myLoc)
+				let bDist = Self.distanceToUser(b, from: myLoc)
+				if let ad = aDist, let bd = bDist, ad != bd {
+					return ad < bd
+				} else if aDist != nil && bDist == nil {
+					return true
+				} else if aDist == nil && bDist != nil {
+					return false
+				}
+			}
+
+			// Tier 3: Alphabetical
+			return (a.longName ?? "").localizedCaseInsensitiveCompare(b.longName ?? "") == .orderedAscending
+		}
+	}
+
+	private static func distanceToUser(_ user: UserEntity, from location: CLLocationCoordinate2D) -> Double? {
+		guard let pos = user.userNode?.positions.first(where: { $0.latest && $0.latitudeI != 0 && $0.longitudeI != 0 }) else {
+			return nil
+		}
+		let lat = Double(pos.latitudeI) / 1e7
+		let lon = Double(pos.longitudeI) / 1e7
+		let earthRadius = 6371009.0
+		let dLat = (lat - location.latitude) * .pi / 180
+		let dLon = (lon - location.longitude) * .pi / 180
+		let sinHalf = sin(dLat / 2) * sin(dLat / 2) +
+			cos(location.latitude * .pi / 180) * cos(lat * .pi / 180) *
+			sin(dLon / 2) * sin(dLon / 2)
+		let central = 2 * atan2(sqrt(sinHalf), sqrt(1 - sinHalf))
+		return earthRadius * central
 	}
 
 	// MARK: - Precomputed message info cache
 
-	/// Batch-fetch most recent messages and unread counts for all visible users in two queries
-	/// instead of 2N individual queries (one per row).
-	private var messageInfo: [Int64: (mostRecent: MessageEntity?, unreadCount: Int)] {
+	/// Refresh message info in background — fetch limited recent messages to find
+	/// most-recent per user and unread counts without loading the entire message table.
+	private func refreshMessageInfo() {
 		let userNums = Set(users.map(\.num))
-		guard !userNums.isEmpty else { return [:] }
+		guard !userNums.isEmpty else {
+			cachedMessageInfo = [:]
+			return
+		}
 
-		// Fetch all non-emoji, non-admin messages for visible users in one query
 		let detectionSensorPortNum: Int32 = 10
 		var descriptor = FetchDescriptor<MessageEntity>(
 			predicate: #Predicate<MessageEntity> {
@@ -107,16 +162,19 @@ private struct FilteredUserList: View {
 			},
 			sortBy: [SortDescriptor(\MessageEntity.messageTimestamp, order: .reverse)]
 		)
-		let allMessages = (try? context.fetch(descriptor)) ?? []
+		// Limit fetch to prevent loading entire message history — 500 recent messages
+		// covers "most recent" for all users and provides reasonable unread counts.
+		descriptor.fetchLimit = 500
+
+		let messages = (try? context.fetch(descriptor)) ?? []
 
 		var result: [Int64: (mostRecent: MessageEntity?, unreadCount: Int)] = [:]
 		for num in userNums {
 			result[num] = (mostRecent: nil, unreadCount: 0)
 		}
-		for message in allMessages {
+		for message in messages {
 			let fromNum = message.fromUser?.num
 			let toNum = message.toUser?.num
-			// Check if this message belongs to any of the visible users
 			for num in [fromNum, toNum].compactMap({ $0 }) where userNums.contains(num) {
 				var entry = result[num]!
 				if entry.mostRecent == nil {
@@ -128,16 +186,16 @@ private struct FilteredUserList: View {
 				result[num] = entry
 			}
 		}
-		return result
+		cachedMessageInfo = result
+		messageInfoNeedsRefresh = false
 	}
 
 	var body: some View {
 		let localeDateFormat = DateFormatter.dateFormat(fromTemplate: "yyMMdd", options: 0, locale: Locale.current)
 		let dateFormatString = (localeDateFormat ?? "MM/dd/YY")
-		let cachedInfo = messageInfo
 
 		List(users, selection: $userSelection) { user in
-			let info = cachedInfo[user.num]
+			let info = cachedMessageInfo[user.num]
 			let mostRecent = info?.mostRecent
 			let hasMessages = mostRecent != nil
 			let hasUnreadMessages = (info?.unreadCount ?? 0) > 0
@@ -275,6 +333,15 @@ private struct FilteredUserList: View {
 		}
 		.listStyle(.plain)
 		.navigationTitle(String.localizedStringWithFormat("Contacts (%@)".localized, String(users.count)))
+		.task {
+			if messageInfoNeedsRefresh {
+				refreshMessageInfo()
+			}
+		}
+		.onChange(of: allUsers.count) {
+			messageInfoNeedsRefresh = true
+			refreshMessageInfo()
+		}
 	}
 }
 fileprivate extension NodeFilterParameters {

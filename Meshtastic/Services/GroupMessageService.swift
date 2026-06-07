@@ -10,6 +10,7 @@ import Foundation
 import MeshtasticProtobufs
 import OSLog
 import SwiftData
+import UserNotifications
 
 // MARK: - Group Message Types (matching firmware GroupMessageModule)
 
@@ -165,6 +166,11 @@ final class GroupMessageService: ObservableObject {
 	/// Unread message counts per group
 	@Published var unreadCounts: [UInt32: Int] = [:]
 
+	/// Total unread group messages across all groups
+	var totalUnreadCount: Int {
+		unreadCounts.values.reduce(0, +)
+	}
+
 	private var nextMessageId: UInt32 = 1
 
 	private init() {
@@ -223,6 +229,29 @@ final class GroupMessageService: ObservableObject {
 		let msgId = generateMessageId()
 		let now = UInt32(Date().timeIntervalSince1970)
 
+		// Track ACKs — set up before send so UI shows pending state immediately
+		let ackStatus = GroupAckStatus(
+			messageId: msgId,
+			groupId: groupId,
+			members: members.filter { $0 != UInt32(fromUserNum) },
+			ackedBy: [],
+			sendTime: Date()
+		)
+		ackTrackers[msgId] = ackStatus
+
+		// Store message locally BEFORE sending so it appears in chat immediately
+		let entry = GroupMessageEntry(
+			messageId: msgId,
+			groupId: groupId,
+			fromNode: UInt32(fromUserNum),
+			text: text,
+			timestamp: Date(),
+			type: .groupText,
+			ackStatus: ackStatus
+		)
+		appendMessage(entry, to: groupId)
+		saveState()
+
 		let payload = GroupMessagePayload(
 			type: .groupText,
 			messageId: msgId,
@@ -243,30 +272,13 @@ final class GroupMessageService: ObservableObject {
 			accessoryManager: accessoryManager
 		)
 
-		// Track ACKs
-		let ackStatus = GroupAckStatus(
-			messageId: msgId,
-			groupId: groupId,
-			members: members.filter { $0 != UInt32(fromUserNum) },
-			ackedBy: [],
-			sendTime: Date()
-		)
-		ackTrackers[msgId] = ackStatus
-
-		// Store locally
-		let entry = GroupMessageEntry(
-			messageId: msgId,
-			groupId: groupId,
-			fromNode: UInt32(fromUserNum),
-			text: text,
-			timestamp: Date(),
-			type: .groupText,
-			ackStatus: ackStatus
-		)
-		appendMessage(entry, to: groupId)
-
 		Logger.mesh.info("Sent group message \(msgId) to group \(groupId.toHex()) with \(members.count) members")
-		saveState()
+		MeshReliableTelemetry.shared.record(.groupMessageSent, details: [
+			"messageId": "\(msgId)",
+			"groupId": "\(groupId)",
+			"memberCount": "\(members.count)",
+			"text": String(text.prefix(100))
+		])
 	}
 
 	func createGroup(
@@ -430,6 +442,57 @@ final class GroupMessageService: ObservableObject {
 		Logger.mesh.info("Left group \(groupId.toHex())")
 	}
 
+	func addMember(nodeNum: UInt32, to groupId: UInt32, accessoryManager: AccessoryManager) async throws {
+		guard let fromUserNum = accessoryManager.activeConnection?.device.num else {
+			throw AccessoryError.ioFailed("No active device")
+		}
+		guard var info = joinedGroups[groupId] else {
+			throw AccessoryError.ioFailed("Group not found")
+		}
+
+		// Add member to local roster
+		if !info.members.contains(nodeNum) {
+			info.members.append(nodeNum)
+			joinedGroups[groupId] = info
+			groupRosters[groupId] = info.members
+		}
+
+		// Send a JOIN announcement with the updated roster so the new member learns about the group
+		let msgId = generateMessageId()
+		let payload = GroupMessagePayload(
+			type: .groupJoin,
+			messageId: msgId,
+			groupId: groupId,
+			ackMessageId: 0,
+			memberNodeId: nodeNum,
+			sendTime: UInt32(Date().timeIntervalSince1970),
+			rebroadcastCount: 0,
+			members: info.members,
+			roster: info.members,
+			text: info.name
+		)
+
+		try await sendGroupPacket(
+			payload: payload,
+			channelIndex: Int32(info.channelIndex),
+			fromUserNum: fromUserNum,
+			accessoryManager: accessoryManager
+		)
+
+		// Add system message to chat
+		let entry = GroupMessageEntry(
+			messageId: msgId,
+			groupId: groupId,
+			fromNode: UInt32(fromUserNum),
+			text: "\(nodeNum.toHex()) was added to the group",
+			timestamp: Date(),
+			type: .groupJoin
+		)
+		appendMessage(entry, to: groupId)
+		saveState()
+		Logger.mesh.info("Added member \(nodeNum.toHex()) to group \(groupId.toHex())")
+	}
+
 	func markAsRead(groupId: UInt32) {
 		unreadCounts[groupId] = 0
 	}
@@ -437,6 +500,13 @@ final class GroupMessageService: ObservableObject {
 	// MARK: - Receiving
 
 	func handleIncomingPacket(_ packet: MeshPacket) {
+		// Filter out echoes of our own broadcasts
+		let myNum = UInt32(UserDefaults.preferredPeripheralNum)
+		if myNum > 0 && packet.from == myNum {
+			Logger.mesh.debug("GroupMessageService: Dropping echoed packet from self")
+			return
+		}
+
 		let data = packet.decoded.payload
 		guard let msg = GroupMessagePayload.deserialize(from: data) else {
 			Logger.mesh.warning("GroupMessageService: Could not parse group message payload")
@@ -445,7 +515,7 @@ final class GroupMessageService: ObservableObject {
 
 		switch msg.type {
 		case .groupText:
-			handleGroupText(msg, from: packet.from)
+			handleGroupText(msg, from: packet.from, channel: packet.channel)
 		case .groupAck:
 			handleGroupAck(msg)
 		case .groupAllAcked:
@@ -461,7 +531,7 @@ final class GroupMessageService: ObservableObject {
 		}
 	}
 
-	private func handleGroupText(_ msg: GroupMessagePayload, from: UInt32) {
+	private func handleGroupText(_ msg: GroupMessagePayload, from: UInt32, channel: UInt32 = 0) {
 		let entry = GroupMessageEntry(
 			messageId: msg.messageId,
 			groupId: msg.groupId,
@@ -470,14 +540,14 @@ final class GroupMessageService: ObservableObject {
 			timestamp: Date(timeIntervalSince1970: TimeInterval(msg.sendTime)),
 			type: .groupText
 		)
-		appendMessage(entry, to: msg.groupId)
+		let isNew = appendMessage(entry, to: msg.groupId)
 
 		// Auto-create group if we don't know it
 		if joinedGroups[msg.groupId] == nil {
 			let info = GroupInfo(
 				groupId: msg.groupId,
 				name: "Group \(msg.groupId.toHex().suffix(4))",
-				channelIndex: 0,
+				channelIndex: UInt8(channel),
 				members: msg.members,
 				createdAt: Date()
 			)
@@ -485,10 +555,36 @@ final class GroupMessageService: ObservableObject {
 			groupRosters[msg.groupId] = msg.members
 		}
 
-		// Increment unread count
-		unreadCounts[msg.groupId, default: 0] += 1
+		// Only increment unread count for genuinely new messages
+		if isNew {
+			unreadCounts[msg.groupId, default: 0] += 1
+
+			// Schedule a local notification for the incoming group message
+			let groupName = joinedGroups[msg.groupId]?.name ?? "Group"
+			let senderName = "\(from.toHex())"
+			let manager = LocalNotificationManager()
+			manager.notifications = [
+				Notification(
+					id: "notification.group.\(msg.messageId)",
+					title: groupName,
+					subtitle: senderName,
+					content: msg.text,
+					target: "messages"
+				)
+			]
+			manager.schedule()
+
+			// Update app badge count to include group unread messages
+			UNUserNotificationCenter.current().setBadgeCount(totalUnreadCount)
+		}
 
 		saveState()
+		MeshReliableTelemetry.shared.record(.groupMessageReceived, details: [
+			"from": "\(from)",
+			"groupId": "\(msg.groupId)",
+			"messageId": "\(msg.messageId)",
+			"text": String(msg.text.prefix(100))
+		])
 		Logger.mesh.info("Received group text from \(from.toHex()) in group \(msg.groupId.toHex()): \(msg.text.prefix(50))")
 	}
 
@@ -608,7 +704,8 @@ final class GroupMessageService: ObservableObject {
 		return id
 	}
 
-	private func appendMessage(_ entry: GroupMessageEntry, to groupId: UInt32) {
+	@discardableResult
+	private func appendMessage(_ entry: GroupMessageEntry, to groupId: UInt32) -> Bool {
 		var messages = groupMessages[groupId] ?? []
 		// Deduplicate by messageId
 		if !messages.contains(where: { $0.messageId == entry.messageId }) {
@@ -618,7 +715,9 @@ final class GroupMessageService: ObservableObject {
 				messages = Array(messages.suffix(500))
 			}
 			groupMessages[groupId] = messages
+			return true
 		}
+		return false
 	}
 
 	// MARK: - Persistence

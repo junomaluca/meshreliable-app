@@ -376,6 +376,13 @@ struct Settings: View {
 					Image(systemName: "scroll")
 				}
 			}
+			NavigationLink(value: SettingsNavigationState.packetLog) {
+				Label {
+					Text("Packet Log")
+				} icon: {
+					Image(systemName: "antenna.radiowaves.left.and.right")
+				}
+			}
 		}
 	}
 
@@ -409,6 +416,13 @@ struct Settings: View {
 					Text("Data Browser")
 				} icon: {
 					Image(systemName: "tablecells")
+				}
+			}
+			NavigationLink(value: SettingsNavigationState.meshReliableDebug) {
+				Label {
+					Text("MeshReliable Debug")
+				} icon: {
+					Image(systemName: "waveform.badge.magnifyingglass")
 				}
 			}
 		}
@@ -662,12 +676,16 @@ struct Settings: View {
 					TAKModuleConfig(node: configNode)
 				case .coreDataBrowser:
 					CoreDataBrowser()
+				case .packetLog:
+					PacketLogView()
 				case .localMeshDiscovery:
 					DiscoveryScanView()
 				case .helpDocs:
 					DocBrowserView()
 				case .backupManagement:
 					BackupManagement()
+				case .meshReliableDebug:
+					MeshReliableDebugView()
 				}
 			}
 			.onChange(of: UserDefaults.preferredPeripheralNum ) { _, newConnectedNode in

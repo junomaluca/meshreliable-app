@@ -1,8 +1,8 @@
 //
-//  UserMessageList.swift
-//  MeshtasticApple
+//  UserMessageList.swift
+//  MeshtasticApple
 //
-//  Created by Garth Vander Houwen on 12/24/21.
+//  Created by Garth Vander Houwen on 12/24/21.
 //
 
 import SwiftUI
@@ -13,6 +13,7 @@ import MeshtasticProtobufs // Added to ensure RoutingError is accessible if need
 struct UserMessageList: View {
 	@EnvironmentObject var appState: AppState
 	@EnvironmentObject var accessoryManager: AccessoryManager
+	@ObservedObject private var meshReliable = MeshReliableService.shared
 	@Environment(\.scenePhase) var scenePhase
 	@Environment(\.modelContext) private var context
 	@FocusState var messageFieldFocused: Bool
@@ -50,7 +51,7 @@ struct UserMessageList: View {
 				unreadMessage.read = true
 			}
 			try context.save()
-			Logger.data.info("📖 [App] All unread direct messages marked as read for user \(user.num, privacy: .public).")
+			Logger.data.info("\u{1F4D6} [App] All unread direct messages marked as read for user \(user.num, privacy: .public).")
 
 			if let connectedPeripheralNum = accessoryManager.activeDeviceNum,
 			   let connectedNode = getNodeInfo(id: connectedPeripheralNum, context: context),
@@ -91,6 +92,27 @@ struct UserMessageList: View {
 		tapbackTargetMessage = nil
 	}
 
+	// MARK: - Band Compatibility Warning
+
+	private var bandWarning: String? {
+		guard let connectedNum = accessoryManager.activeDeviceNum,
+			  let connectedNode = getNodeInfo(id: connectedNum, context: context),
+			  let myRegion = connectedNode.loRaConfig?.regionCode, myRegion != 0 else {
+			return nil
+		}
+		guard let recipientNode = getNodeInfo(id: user.num, context: context),
+			  let theirRegion = recipientNode.loRaConfig?.regionCode, theirRegion != 0 else {
+			return nil
+		}
+		let myBand = BandGroup.from(regionCode: myRegion)
+		let theirBand = BandGroup.from(regionCode: theirRegion)
+		if myBand == theirBand { return nil }
+		if recipientNode.viaMqtt {
+			return "This node is on \(theirBand.label) (you are on \(myBand.label)). Messages route via MQTT bridge."
+		}
+		return "This node is on \(theirBand.label) (you are on \(myBand.label)). No bridge path available - messages may not be delivered."
+	}
+
 	var body: some View {
 		// Cast user.messageList to an array for easier indexing and ForEach.
 		let messages: [MessageEntity] = Array(allPrivateMessages)
@@ -109,7 +131,7 @@ struct UserMessageList: View {
 					LazyVStack {
 						ForEach(messages, id: \.messageId) { message in
 							let previousMessage: MessageEntity? = previousByID[message.messageId] ?? nil
-							
+
 							UserMessageRow(
 								message: message,
 								allMessages: messages,
@@ -154,6 +176,34 @@ struct UserMessageList: View {
 							}
 
 						}
+						// Pending outgoing images (inline sending)
+						ForEach(meshReliable.pendingImages.filter { $0.toUserNum == user.num }) { pending in
+							if let uiImage = UIImage(data: pending.imageData) {
+								InlineImageBubble(
+									image: uiImage,
+									isFromMe: true,
+									caption: nil,
+									progress: pending.isSending ? pending.progress : nil,
+									error: pending.error,
+									onRetry: {
+										meshReliable.retryPendingImage(id: pending.id, accessoryManager: accessoryManager)
+									}
+								)
+							}
+						}
+						// Pending outgoing voice memos (inline sending, not yet persisted)
+						ForEach(meshReliable.pendingVoiceMemos.filter { $0.toUserNum == user.num }) { pending in
+							InlineVoiceMemoBubble(
+								duration: pending.duration,
+								isFromMe: true,
+								audioData: pending.pcmData,
+								progress: pending.isSending ? pending.progress : nil,
+								error: pending.error,
+								onRetry: {
+									meshReliable.retryPendingVoiceMemo(id: pending.id, accessoryManager: accessoryManager)
+								}
+							)
+						}
 						// Invisible spacer to detect reaching bottom
 						Color.clear
 							.frame(height: 1)
@@ -164,6 +214,7 @@ struct UserMessageList: View {
 				.defaultScrollAnchorBottomSizeChanges()
 				.scrollDismissesKeyboard(.immediately)
 				.onAppear {
+					markMessagesAsRead()
 					DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
 						scrollView.scrollTo("bottomAnchor", anchor: .bottom)
 					}
@@ -195,6 +246,20 @@ struct UserMessageList: View {
 							processTapback()
 						}
 				}
+			}
+			// Band compatibility warning
+			if let warning = bandWarning {
+				HStack(spacing: 6) {
+					Image(systemName: "exclamationmark.triangle.fill")
+						.foregroundColor(.yellow)
+						.font(.caption)
+					Text(warning)
+						.font(.caption2)
+						.foregroundColor(.secondary)
+				}
+				.padding(.horizontal, 12)
+				.padding(.vertical, 6)
+				.background(Color.yellow.opacity(0.1))
 			}
 			TextMessageField(
 				destination: .user(user),

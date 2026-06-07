@@ -260,6 +260,7 @@ private extension MessageDestination {
 		switch self {
 		case .user: return false
 		case .channel: return true
+		case .group: return false
 		}
 	}
 }

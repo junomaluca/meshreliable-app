@@ -81,7 +81,7 @@ struct LocalWeatherConditions: View {
 						humidity = Int(weather.currentWeather.humidity * 100)
 						pressure = weather.currentWeather.pressure
 						windSpeed = measurementFormatter.string(from: weather.currentWeather.wind.speed)
-						windGust = measurementFormatter.string(from: weather.currentWeather.wind.gust ?? Measurement(value: 0.0, unit: weather.currentWeather.wind.gust!.unit))
+						windGust = measurementFormatter.string(from: weather.currentWeather.wind.gust ?? Measurement(value: 0.0, unit: UnitSpeed.kilometersPerHour))
 						windDirection = weather.currentWeather.wind.direction
 						windCompassDirection = weather.currentWeather.wind.compassDirection.description
 						symbolName = weather.currentWeather.symbolName

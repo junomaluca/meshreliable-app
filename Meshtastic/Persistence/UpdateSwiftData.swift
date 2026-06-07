@@ -142,7 +142,7 @@ extension MeshPackets {
 		}
 	}
 	
-	public func clearDatabase(includeRoutes: Bool, preserveFavorites: Bool = false) {
+	public func clearDatabase(includeRoutes: Bool, preserveFavorites: Bool = false, preserveMessages: Bool = false) {
 		// Delete entities that are on the inverse side of many-to-many
 		// relationships first to avoid constraint trigger violations.
 		do {
@@ -169,6 +169,9 @@ extension MeshPackets {
 			}
 			if modelType == DeviceHardwareTagEntity.self || modelType == DeviceHardwareImageEntity.self {
 				continue // already deleted above
+			}
+			if preserveMessages && (modelType == MessageEntity.self || modelType == UserEntity.self) {
+				continue // keep message history and user contacts across device switches
 			}
 			if preserveFavorites && modelType == NodeInfoEntity.self {
 				// Keep favorited nodes so the device and app stay in sync when the

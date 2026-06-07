@@ -1,8 +1,8 @@
 //
-//  UserMessageRow.swift
-//  MeshtasticApple
+//  UserMessageRow.swift
+//  MeshtasticApple
 //
-//  Copyright(c) Garth Vander Houwen 10/1/2025
+//  Copyright(c) Garth Vander Houwen 10/1/2025
 //
 
 import SwiftData
@@ -10,7 +10,7 @@ import MeshtasticProtobufs
 import SwiftUI
 
 struct UserMessageRow: View {
-	
+
 	@EnvironmentObject var appState: AppState
 	@Environment(\.modelContext) private var context
 	@Bindable var message: MessageEntity
@@ -24,11 +24,11 @@ struct UserMessageRow: View {
 	let scrollView: ScrollViewProxy
 	let onInteractionComplete: () -> Void
 	let onTapback: (MessageEntity) -> Void
-	
+
 	private var isCurrentUser: Bool {
 		Int64(preferredPeripheralNum) == message.fromUser?.num
 	}
-	
+
 	init(
 		message: MessageEntity,
 		allMessages: [MessageEntity],
@@ -55,10 +55,10 @@ struct UserMessageRow: View {
 		self.onInteractionComplete = onInteractionComplete
 		self.onTapback = onTapback
 	}
-	
+
 	var body: some View {
 		VStack(alignment: .leading, spacing: 0) {
-			
+
 			// Timestamp Header
 			if message.displayTimestamp(aboveMessage: previousMessage) {
 				Text(message.timestamp.formatted(date: .abbreviated, time: .shortened))
@@ -67,14 +67,14 @@ struct UserMessageRow: View {
 					.frame(maxWidth: .infinity, alignment: .center)
 					.padding(.vertical, 5)
 			}
-			
+
 			// Reply Message Block
 			if message.replyID > 0 {
 				let messageReply = allMessages.first(where: { $0.messageId == message.replyID })
-				
+
 				HStack {
 					Spacer(minLength: isCurrentUser ? 50 : 0)
-					
+
 					Button {
 						if let messageNum = messageReply?.messageId {
 							withAnimation(.easeInOut(duration: 0.5)) {
@@ -102,10 +102,10 @@ struct UserMessageRow: View {
 					if !isCurrentUser { Spacer(minLength: 50) }
 				}
 			}
-			
+
 			HStack(alignment: .bottom) {
 				if isCurrentUser { Spacer(minLength: 50) }
-				
+
 				// Node Detail Tap
 				if !isCurrentUser {
 					NavigationLink(value: Int64(message.fromUser?.num ?? 0)) {
@@ -114,64 +114,105 @@ struct UserMessageRow: View {
 					.buttonStyle(.plain)
 					.padding(.all, 5).offset(y: -7)
 				}
-				
+
 				VStack(alignment: isCurrentUser ? .trailing : .leading) {
-					
+
 					// Sender Name Header
 					if !isCurrentUser && message.fromUser != nil {
 						Text("\(message.fromUser?.longName ?? "Unknown".localized ) (\(message.fromUser?.userId ?? "?"))")
 							.font(.caption).foregroundColor(.gray).offset(y: 8)
 					}
-					
+
 					// Message Bubble
-					HStack {
-						MessageText(
-							message: message,
-							tapBackDestination: .user(user), // Destination is the user
-							isCurrentUser: isCurrentUser
-						) {
-							self.replyMessageId = message.messageId
-							self.messageFieldFocused = true						} onTapback: {
-							onTapback(message)						}
-						
-						if isCurrentUser && message.canRetry || (isCurrentUser && message.receivedACK && !message.realACK) {
-							RetryButton(message: message, destination: .user(user))
+					if let imageData = message.imageData, let uiImage = UIImage(data: imageData) {
+						InlineImageBubble(image: uiImage, isFromMe: isCurrentUser, caption: nil)
+					} else if let voiceMemoData = message.voiceMemoData {
+						InlineVoiceMemoBubble(
+							duration: Double(voiceMemoData.count / 2) / 8000.0,
+							isFromMe: isCurrentUser,
+							audioData: voiceMemoData
+						)
+					} else {
+						HStack {
+							MessageText(
+								message: message,
+								tapBackDestination: .user(user), // Destination is the user
+								isCurrentUser: isCurrentUser
+							) {
+								self.replyMessageId = message.messageId
+								self.messageFieldFocused = true						} onTapback: {
+								onTapback(message)						}
+
+							if isCurrentUser && message.canRetry || (isCurrentUser && message.receivedACK && !message.realACK) {
+								RetryButton(message: message, destination: .user(user))
+							}
 						}
 					}
-					
+
 					// Tapback Responses - Pass the closure to trigger the parent redraw
 					TapbackResponses(message: message, onRead: onInteractionComplete)
-					
-					// ACK Error
-					HStack {
-						let ackErrorVal = RoutingError(rawValue: Int(message.ackError))
-						if isCurrentUser && message.receivedACK {
-							// Ack Received
-							if message.realACK {
-								Text("\(ackErrorVal?.display ?? "Empty Ack Error")")
-									.font(.caption2)
-									.foregroundStyle(ackErrorVal?.color ?? Color.secondary)
-							} else {
-								Text("Acknowledged by another node").font(.caption2).foregroundColor(.orange)
-							}
-						} else if isCurrentUser && message.ackError == 0 {
-							// Empty Error
-							Text("Waiting to be acknowledged. . .").font(.caption2).foregroundColor(.yellow)
-						} else if isCurrentUser && message.ackError > 0 {
-							Text("\(ackErrorVal?.display ?? "Empty Ack Error")").fixedSize(horizontal: false, vertical: true)
-								.foregroundStyle(ackErrorVal?.color ?? Color.red)
-								.font(.caption2)
-						}
+
+					// Delivery Status Indicators (WhatsApp-style)
+					// Skip for image/voice messages — they have their own status
+					if isCurrentUser && message.imageData == nil && message.voiceMemoData == nil {
+						dmDeliveryStatus
 					}
 				}
 				.padding(.bottom)
-				
+
 				if !isCurrentUser { Spacer(minLength: 50) }
 			}
 			.padding([.leading, .trailing])
 			.frame(maxWidth: .infinity)
-			
+
 		}
 		.id(message.messageId)
+	}
+
+	// MARK: - DM Delivery Status
+
+	@ViewBuilder
+	private var dmDeliveryStatus: some View {
+		let ackErrorVal = RoutingError(rawValue: Int(message.ackError))
+
+		if message.receivedACK {
+			if message.realACK {
+				// Delivered to recipient: green checkmark
+				HStack(spacing: 3) {
+					Image(systemName: "checkmark.circle.fill")
+						.font(.system(size: 12))
+						.foregroundColor(.green)
+					if let errorDisplay = ackErrorVal?.display, ackErrorVal?.rawValue != 0 {
+						Text(errorDisplay)
+							.font(.caption2)
+							.foregroundStyle(ackErrorVal?.color ?? .secondary)
+					}
+				}
+			} else {
+				// Traveling through network via relay: curved route arrow
+				HStack(spacing: 3) {
+					Image(systemName: "arrow.triangle.swap")
+						.font(.system(size: 11))
+						.foregroundColor(.orange)
+				}
+			}
+		} else if message.ackError == 0 {
+			// Sent, waiting for ACK: antenna transmitting
+			HStack(spacing: 3) {
+				Image(systemName: "antenna.radiowaves.left.and.right")
+					.font(.system(size: 11))
+					.foregroundColor(.secondary)
+			}
+		} else {
+			// Failed: red exclamation
+			HStack(spacing: 3) {
+				Image(systemName: "exclamationmark.circle.fill")
+					.font(.system(size: 11))
+					.foregroundColor(.red)
+				Text(ackErrorVal?.display ?? "Failed")
+					.font(.caption2)
+					.foregroundColor(.red)
+			}
+		}
 	}
 }

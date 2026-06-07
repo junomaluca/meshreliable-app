@@ -172,16 +172,16 @@ struct UserConfig: View {
 							
 							let connectedUser = getUser(id: accessoryManager.activeDeviceNum ?? -1, context: context)
 							let connectedNode = getNodeInfo(id: accessoryManager.activeDeviceNum ?? -1, context: context)
-							if node != nil && connectedNode != nil {
-								
+							if let node, connectedNode != nil, let nodeUser = node.user {
+
 								if !isLicensed {
 									var u = User()
 									u.shortName = shortName
 									u.longName = longName
 									u.isUnmessagable = isUnmessagable
-									
+
 									Task {
-										_ = try await accessoryManager.saveUser(config: u, fromUser: connectedUser, toUser: node!.user!)
+										_ = try await accessoryManager.saveUser(config: u, fromUser: connectedUser, toUser: nodeUser)
 										Task { @MainActor in
 											hasChanges = false
 											goBack()
@@ -195,7 +195,7 @@ struct UserConfig: View {
 									ham.txPower = Int32(txPower)
 									ham.frequency = overrideFrequency
 									Task {
-										_ = try await accessoryManager.saveLicensedUser(ham: ham, fromUser: connectedUser, toUser: node!.user!)
+										_ = try await accessoryManager.saveLicensedUser(ham: ham, fromUser: connectedUser, toUser: nodeUser)
 										Task { @MainActor in
 											hasChanges = false
 											goBack()

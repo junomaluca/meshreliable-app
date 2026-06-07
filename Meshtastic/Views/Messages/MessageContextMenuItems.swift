@@ -152,6 +152,7 @@ private extension MessageDestination {
 		switch self {
 		case let .user(user): return user
 		case let .channel(channel): return channel
+		case .group: fatalError("Group messages do not have a PersistentModel destination")
 		}
 	}
 }

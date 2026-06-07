@@ -186,6 +186,7 @@ struct VoiceMemoPlayer: View {
 					.foregroundStyle(isCurrentUser ? .white : .accentColor)
 			}
 			.buttonStyle(.plain)
+			.accessibilityLabel(player.isPlaying ? "Pause voice memo" : "Play voice memo")
 
 			// Mini waveform with progress overlay
 			VStack(alignment: .leading, spacing: 4) {

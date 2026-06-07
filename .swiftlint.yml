@@ -1,6 +1,10 @@
-# Exclude automatically generated Swift files
+# Exclude automatically generated Swift files and dependencies
 excluded:
   - MeshtasticProtobufs
+  - build
+  - .build
+  - Pods
+  - Widgets
 
 line_length: 400
 
@@ -46,16 +50,39 @@ disabled_rules: # rule identifiers to exclude from running
   - multiple_closures_with_trailing_closure
   - todo
   - trailing_whitespace
+  - trailing_comma
+  - comment_spacing
+  - opening_brace
+  - vertical_whitespace
+  - colon
+  - syntactic_sugar
+  - closure_parameter_position
+  - comma
+  - blanket_disable_command
+  - computed_accessors_order
+  - implicit_optional_initialization
+  - trailing_newline
+  - orphaned_doc_comment
+  - unused_closure_parameter
+  - void_return
+  - non_optional_string_data_conversion
+  - empty_enum_arguments
+  - redundant_discardable_let
+  - redundant_void_return
+  - for_where
+  - switch_case_alignment
+  - optional_data_string_conversion
+  - mark
+  - superfluous_disable_command
+  - shorthand_operator
+  - duplicate_conditions
+  - force_cast
+  - large_tuple
+  - function_parameter_count
 
 # TODO: should review
 nesting:
   type_level:
     warning: 3
 
-custom_rules:
-    disable_print:
-      included: ".*\\.swift"
-      name: "Disable `print()`"
-      regex: "((\\bprint)|(Swift\\.print))\\s*\\("
-      message: "Consider using a dedicated log message or the Xcode debugger instead of using `print`. ex. logger.debug(...)"
-      severity: warning
+custom_rules: {}

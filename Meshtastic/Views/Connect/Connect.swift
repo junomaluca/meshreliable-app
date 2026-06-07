@@ -173,8 +173,8 @@ struct Connect: View {
 							}
 							.contextMenu {
 								
-								if node != nil {
-									Label("\(String(node!.num))", systemImage: "number")
+								if let node {
+									Label("\(String(node.num))", systemImage: "number")
 #if !targetEnvironment(macCatalyst)
 									if accessoryManager.state == .subscribed {
 										Button {
@@ -204,17 +204,18 @@ struct Connect: View {
 										} label: {
 											Label("Disconnect", systemImage: "antenna.radiowaves.left.and.right.slash")
 										}
-										Button(role: .destructive) {
-											Task {
-												do {
-													try await accessoryManager.sendShutdown(fromUser: node!.user!, toUser: node!.user!)
-												} catch {
-													Logger.mesh.error("Shutdown Failed: \(error)")
+										if let nodeUser = node.user {
+											Button(role: .destructive) {
+												Task {
+													do {
+														try await accessoryManager.sendShutdown(fromUser: nodeUser, toUser: nodeUser)
+													} catch {
+														Logger.mesh.error("Shutdown Failed: \(error)")
+													}
 												}
+											} label: {
+												Label("Power Off", systemImage: "power")
 											}
-											
-										} label: {
-											Label("Power Off", systemImage: "power")
 										}
 									}
 								}
@@ -245,7 +246,7 @@ struct Connect: View {
 											.font(.title2)
 											.foregroundColor(.orange)
 									case .retrievingDatabase:
-										Text("Retreiving nodes . .")
+										Text("Retrieving nodes . .")
 											.font(.callout)
 											.foregroundColor(.orange)
 									case .retrying(let attempt, let maxAttempts):
@@ -774,9 +775,9 @@ func backupCurrentAndRestoreDatabase(
 	await Task.yield()
 
 	await MeshPackets.shared.flushDebouncedSaves()
-	await MeshPackets.shared.clearDatabase(includeRoutes: false)
+	await MeshPackets.shared.clearDatabase(includeRoutes: false, preserveMessages: true)
 	MeshPackets.recreateShared()
-	Logger.backup.info("💾 Database cleared and MeshPackets recreated")
+	Logger.backup.info("💾 Database cleared (messages preserved) and MeshPackets recreated")
 
 	let restoreResult = await NodeBackupManager.shared.restoreFromBackup(
 		forNode: targetNodeNum,

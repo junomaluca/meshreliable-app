@@ -17,12 +17,18 @@ struct CreateGroupSheet: View {
 	@State private var groupName: String = ""
 	@State private var selectedNodes: Set<Int64> = []
 	@State private var isCreating = false
+	@State private var errorMessage: String?
+	@State private var showError = false
 
 	@Query(sort: \NodeInfoEntity.lastHeard, order: .reverse) private var nodes: [NodeInfoEntity]
 
 	private var availableNodes: [NodeInfoEntity] {
 		let myNum = Int64(UserDefaults.preferredPeripheralNum)
-		return nodes.filter { $0.num != myNum && $0.user != nil }
+		var seen = Set<Int64>()
+		return nodes.filter { node in
+			guard node.num != myNum && node.user != nil else { return false }
+			return seen.insert(node.num).inserted
+		}
 	}
 
 	var body: some View {
@@ -73,13 +79,24 @@ struct CreateGroupSheet: View {
 			.toolbar {
 				ToolbarItem(placement: .cancellationAction) {
 					Button("Cancel") { dismiss() }
+						.disabled(isCreating)
 				}
 				ToolbarItem(placement: .confirmationAction) {
-					Button("Create") {
-						createGroup()
+					if isCreating {
+						ProgressView()
+					} else {
+						Button("Create") {
+							createGroup()
+						}
+						.disabled(groupName.isEmpty || selectedNodes.isEmpty)
 					}
-					.disabled(groupName.isEmpty || selectedNodes.isEmpty || isCreating)
 				}
+			}
+			.interactiveDismissDisabled(isCreating)
+			.alert("Error", isPresented: $showError) {
+				Button("OK") {}
+			} message: {
+				Text(errorMessage ?? "Failed to create group")
 			}
 		}
 	}
@@ -100,7 +117,11 @@ struct CreateGroupSheet: View {
 				}
 			} catch {
 				Logger.mesh.error("Failed to create group: \(error.localizedDescription)")
-				isCreating = false
+				await MainActor.run {
+					errorMessage = error.localizedDescription
+					showError = true
+					isCreating = false
+				}
 			}
 		}
 	}

@@ -33,6 +33,7 @@ final class VoiceMemoRecorderModel: ObservableObject {
 
 	private var audioEngine: AVAudioEngine?
 	private var durationTimer: Timer?
+	private var recordingStartTime: Date?
 
 	/// 8kHz mono 16-bit signed integer -- matches firmware Codec2 input.
 	static let sampleRate: Double = 8000
@@ -163,11 +164,12 @@ final class VoiceMemoRecorderModel: ObservableObject {
 			try engine.start()
 			audioEngine = engine
 			isRecording = true
+			recordingStartTime = Date()
 
 			durationTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
 				Task { @MainActor in
-					guard let self, self.isRecording else { return }
-					self.recordingDuration += 0.1
+					guard let self, self.isRecording, let startTime = self.recordingStartTime else { return }
+					self.recordingDuration = Date().timeIntervalSince(startTime)
 				}
 			}
 		} catch {
@@ -203,9 +205,6 @@ struct VoiceMemoRecorder: View {
 
 	let destination: MessageDestination
 
-	@State private var isSending = false
-	@State private var sendError: String?
-
 	var body: some View {
 		NavigationStack {
 			VStack(spacing: 24) {
@@ -236,7 +235,7 @@ struct VoiceMemoRecorder: View {
 				// Record button
 				VStack(spacing: 12) {
 					if !recorder.isRecording && recorder.pcmData.isEmpty {
-						// Not yet started
+						// Not yet started — tap to record
 						Button {
 							Task { await recorder.startRecording() }
 						} label: {
@@ -247,39 +246,17 @@ struct VoiceMemoRecorder: View {
 							.font(.caption)
 							.foregroundStyle(.secondary)
 					} else if recorder.isRecording {
-						// Currently recording
+						// Currently recording — tap to stop & send
 						Button {
-							recorder.stopRecording()
+							stopAndSend()
 						} label: {
 							RecordButtonLabel(isRecording: true)
 						}
 						.accessibilityIdentifier("recordButton")
-						Text("Tap to stop")
-							.font(.caption)
-							.foregroundStyle(.secondary)
-					} else {
-						// Recording complete, show send/cancel
-						sendControls
-					}
-				}
-
-				// Send progress
-				if let progress = meshReliable.sendProgress {
-					VStack(spacing: 4) {
-						ProgressView(value: progress)
-							.progressViewStyle(.linear)
-						Text("Sending... \(Int(progress * 100))%")
+						Text("Tap to send")
 							.font(.caption)
 							.foregroundStyle(.secondary)
 					}
-					.padding(.horizontal, 40)
-				}
-
-				if let error = sendError {
-					Text(error)
-						.font(.caption)
-						.foregroundStyle(.red)
-						.padding(.horizontal)
 				}
 
 				Spacer()
@@ -308,72 +285,21 @@ struct VoiceMemoRecorder: View {
 		}
 	}
 
-	private var sendControls: some View {
-		HStack(spacing: 40) {
-			// Discard
-			Button {
-				recorder.cancel()
-			} label: {
-				VStack {
-					Image(systemName: "trash.circle.fill")
-						.font(.system(size: 44))
-						.foregroundStyle(.red)
-					Text("Discard")
-						.font(.caption)
-						.foregroundStyle(.secondary)
-				}
-			}
-			.disabled(isSending)
+	/// Stop recording and immediately send inline, then dismiss.
+	private func stopAndSend() {
+		let duration = recorder.recordingDuration
+		recorder.stopRecording()
 
-			// Re-record
-			Button {
-				recorder.cancel()
-				Task { await recorder.startRecording() }
-			} label: {
-				VStack {
-					Image(systemName: "arrow.counterclockwise.circle.fill")
-						.font(.system(size: 44))
-						.foregroundStyle(.orange)
-					Text("Re-record")
-						.font(.caption)
-						.foregroundStyle(.secondary)
-				}
-			}
-			.disabled(isSending)
+		guard !recorder.pcmData.isEmpty else { return }
 
-			// Send
-			Button {
-				Task { await sendVoiceMemo() }
-			} label: {
-				VStack {
-					Image(systemName: "arrow.up.circle.fill")
-						.font(.system(size: 44))
-						.foregroundStyle(Color.accentColor)
-					Text("Send")
-						.font(.caption)
-						.foregroundStyle(.secondary)
-				}
-			}
-			.disabled(isSending || recorder.pcmData.isEmpty)
-		}
-	}
-
-	private func sendVoiceMemo() async {
-		isSending = true
-		sendError = nil
-		do {
-			try await meshReliable.sendVoiceMemo(
-				pcmData: recorder.pcmData,
-				toUserNum: destination.userNum,
-				channel: destination.channelNum,
-				accessoryManager: accessoryManager
-			)
-			dismiss()
-		} catch {
-			sendError = "Failed to send: \(error.localizedDescription)"
-			Logger.mesh.error("Voice memo send failed: \(error.localizedDescription)")
-		}
-		isSending = false
+		meshReliable.sendVoiceMemoInline(
+			pcmData: recorder.pcmData,
+			duration: duration,
+			toUserNum: destination.userNum,
+			channel: destination.channelNum,
+			accessoryManager: accessoryManager
+		)
+		dismiss()
 	}
 
 	private func formattedDuration(_ duration: TimeInterval) -> String {

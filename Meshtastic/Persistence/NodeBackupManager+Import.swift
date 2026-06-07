@@ -37,9 +37,24 @@ extension NodeBackupManager {
 	}
 
 	nonisolated static func importUsers(from backupContext: ModelContext, into liveContext: ModelContext, nodesByNum: [Int64: NodeInfoEntity]) throws -> [Int64: UserEntity] {
+		// Build lookup of existing users (preserved across device switch)
+		let existingUsers = try liveContext.fetch(FetchDescriptor<UserEntity>())
+		var existingByNum: [Int64: UserEntity] = [:]
+		for user in existingUsers {
+			existingByNum[user.num] = user
+		}
+
 		let backupUsers = try backupContext.fetch(FetchDescriptor<UserEntity>())
-		var usersByNum: [Int64: UserEntity] = [:]
+		var usersByNum: [Int64: UserEntity] = existingByNum
 		for src in backupUsers {
+			if let existing = existingByNum[src.num] {
+				// User already exists — re-link to restored node
+				if let srcNode = src.userNode, let liveNode = nodesByNum[srcNode.num] {
+					existing.userNode = liveNode
+				}
+				usersByNum[existing.num] = existing
+				continue
+			}
 			let dst = UserEntity()
 			dst.hwDisplayName = src.hwDisplayName
 			dst.hwModel = src.hwModel
@@ -212,8 +227,15 @@ extension NodeBackupManager {
 	}
 
 	nonisolated static func importMessages(from backupContext: ModelContext, into liveContext: ModelContext, usersByNum: [Int64: UserEntity]) throws {
+		// Build lookup of existing message IDs (preserved across device switch)
+		let existingMessages = try liveContext.fetch(FetchDescriptor<MessageEntity>())
+		let existingIds = Set(existingMessages.map(\.messageId))
+
 		let backupMessages = try backupContext.fetch(FetchDescriptor<MessageEntity>())
 		for src in backupMessages {
+			if existingIds.contains(src.messageId) {
+				continue // message already exists in live DB
+			}
 			let dst = MessageEntity()
 			dst.ackError = src.ackError
 			dst.ackSNR = src.ackSNR
@@ -240,6 +262,7 @@ extension NodeBackupManager {
 			dst.rssi = src.rssi
 			dst.showTranslatedMessage = src.showTranslatedMessage
 			dst.snr = src.snr
+			dst.imageData = src.imageData
 			if let fromNum = src.fromUser?.num, let liveUser = usersByNum[fromNum] {
 				dst.fromUser = liveUser
 			}

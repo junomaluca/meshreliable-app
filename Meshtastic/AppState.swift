@@ -22,8 +22,11 @@ class AppState: ObservableObject {
 		// Keep app icon badge count in sync with messages read status
 		$unreadChannelMessages.combineLatest($unreadDirectMessages)
 			.sink(receiveValue: { badgeCounts in
-				UNUserNotificationCenter.current()
-					.setBadgeCount(badgeCounts.0 + badgeCounts.1)
+				Task { @MainActor in
+					let groupUnread = GroupMessageService.shared.totalUnreadCount
+					UNUserNotificationCenter.current()
+						.setBadgeCount(badgeCounts.0 + badgeCounts.1 + groupUnread)
+				}
 			})
 			.store(in: &cancellables)
 	}
@@ -51,6 +54,7 @@ class AppState: ObservableObject {
 		if unreadDirectMessages != dmCount {
 			unreadDirectMessages = dmCount
 		}
-		Logger.data.debug("🔢 Badge refresh: \(channelCount) channel + \(dmCount) DM = \(channelCount + dmCount) total")
+		let groupCount = GroupMessageService.shared.totalUnreadCount
+		Logger.data.debug("🔢 Badge refresh: \(channelCount) channel + \(dmCount) DM + \(groupCount) group = \(channelCount + dmCount + groupCount) total")
 	}
 }

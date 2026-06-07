@@ -228,21 +228,23 @@ struct Channels: View {
 							channel.settings.uplinkEnabled = uplink
 							channel.settings.downlinkEnabled = downlink
 							channel.settings.moduleSettings.positionPrecision = UInt32(positionPrecision)
-							selectedChannel!.role = Int32(channelRole)
-							selectedChannel!.index = channelIndex
-							selectedChannel!.name = channelName
-							selectedChannel!.psk = Data(base64Encoded: channelKey) ?? Data()
-							selectedChannel!.uplinkEnabled = uplink
-							selectedChannel!.downlinkEnabled = downlink
-							selectedChannel!.positionPrecision = Int32(positionPrecision)
+							if let selected = selectedChannel {
+								selected.role = Int32(channelRole)
+								selected.index = channelIndex
+								selected.name = channelName
+								selected.psk = Data(base64Encoded: channelKey) ?? Data()
+								selected.uplinkEnabled = uplink
+								selected.downlinkEnabled = downlink
+								selected.positionPrecision = Int32(positionPrecision)
+							}
 
 							guard var channels = node.myInfo?.channels else {
 								return
 							}
-							if let idx = channels.firstIndex(where: { $0.index == selectedChannel?.index }) {
-								channels[idx] = selectedChannel!
-							} else {
-								channels.append(selectedChannel!)
+							if let selected = selectedChannel, let idx = channels.firstIndex(where: { $0.index == selected.index }) {
+								channels[idx] = selected
+							} else if let selected = selectedChannel {
+								channels.append(selected)
 							}
 
 							var uniqueChannels: [Int32: ChannelEntity] = [:]

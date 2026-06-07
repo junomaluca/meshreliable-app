@@ -61,6 +61,13 @@ actor BLETransport: Transport {
 		self.discoveredDeviceContinuation = cont
 	}
 
+	/// Remove a device from the discovery cache so it won't be re-yielded
+	/// on the next discovery restart (e.g. after manual disconnect).
+	func removeDiscoveredDevice(id: UUID) {
+		discoveredPeripherals.removeValue(forKey: id)
+		discoveredDeviceContinuation?.yield(.deviceLost(id))
+	}
+
 	private func createCentralManager() {
 		centralManager = CBCentralManager(delegate: delegate,
 										  queue: centralQueue,
@@ -129,14 +136,16 @@ actor BLETransport: Transport {
 	private func stopScanning() {
 		Logger.transport.debug("🛜 [BLE] Stop Scanning: BLE Discovery has been stopped.")
 		guard centralManager != nil else {
-			discoveredPeripherals.removeAll()
+			// Keep discoveredPeripherals cached so they can be re-yielded on restart
 			discoveredDeviceContinuation = nil
 			cleanupTask?.cancel()
 			cleanupTask = nil
 			return
 		}
 		centralManager.stopScan()
-		discoveredPeripherals.removeAll()
+		// Keep discoveredPeripherals cached so they can be re-yielded when
+		// scanning restarts (e.g. after user-initiated disconnect).
+		// Stale entries are already cleaned up by the periodic cleanup task.
 		discoveredDeviceContinuation = nil
 		if centralManager.state == .poweredOn {
 			status = .ready
@@ -282,8 +291,9 @@ actor BLETransport: Transport {
 			discoveredPeripherals.removeValue(forKey: peripheral.identifier)
 			discoveredDeviceContinuation?.yield(.deviceLost(peripheral.identifier))
 		} else if let connection = self.activeConnection {
-			discoveredPeripherals.removeValue(forKey: peripheral.identifier)
-			discoveredDeviceContinuation?.yield(.deviceLost(peripheral.identifier))
+			// Active connection disconnected cleanly — keep the peripheral in
+			// discoveredPeripherals so it remains visible in the device list
+			// after disconnect and can be reconnected immediately.
 			Task {
 				if await connection.peripheral.identifier == peripheral.identifier {
 					try await connection.disconnect(withError: AccessoryError.disconnected("BLE connection lost"), shouldReconnect: true)
@@ -492,13 +502,9 @@ actor BLETransport: Transport {
 
 	// BLETransport handles portions of the connection process, so it needs to be informed that we've closed up shop.
 	func connectionDidDisconnect(fromPeripheral peripheral: CBPeripheral?) {
-		// Make sure we remove this device from the discovered list so that we send a
-		// new discovery event in when it is next seen.
-		if let peripheral {
-			discoveredPeripherals.removeValue(forKey: peripheral.identifier)
-			discoveredDeviceContinuation?.yield(.deviceLost(peripheral.identifier))
-		}
-		
+		// Keep the peripheral in discoveredPeripherals so it stays visible in
+		// the device list after disconnect. The periodic cleanup task will
+		// remove it if it stops advertising (goes out of range / powers off).
 		self.activeConnection = nil
 		self.connectingPeripheral = nil
 		restoreInProgress = false

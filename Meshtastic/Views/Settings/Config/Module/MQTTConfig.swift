@@ -273,7 +273,7 @@ struct MQTTConfig: View {
 						mqtt.jsonEnabled = self.jsonEnabled
 						mqtt.tlsEnabled = self.tlsEnabled
 						mqtt.mapReportingEnabled = self.mapReportingEnabled
-						mqtt.mapReportSettings.shouldReportLocation = UserDefaults.mapReportingOptIn
+						mqtt.mapReportSettings.shouldReportLocation = self.mapReportingOptIn
 						mqtt.mapReportSettings.positionPrecision = UInt32(self.mapPositionPrecision)
 						mqtt.mapReportSettings.publishIntervalSecs = UInt32(self.mapPublishIntervalSecs.intValue)
 						_ = try await accessoryManager.saveMQTTConfig(config: mqtt, fromUser: fromUser, toUser: toUser)
@@ -336,8 +336,8 @@ struct MQTTConfig: View {
 						accessoryManager.mqttManager.disconnect()
 					}
 				} else {
-					if !accessoryManager.mqttProxyConnected && node != nil {
-						accessoryManager.mqttManager.connectFromConfigSettings(node: node!)
+					if !accessoryManager.mqttProxyConnected, let node {
+						accessoryManager.mqttManager.connectFromConfigSettings(node: node)
 					}
 				}
 			}
@@ -346,6 +346,12 @@ struct MQTTConfig: View {
 			}
 			.onChange(of: mapPublishIntervalSecs.intValue) { oldMapInterval, newMapPublishIntervalSecs in
 				if oldMapInterval != newMapPublishIntervalSecs && newMapPublishIntervalSecs != node?.mqttConfig?.mapPublishIntervalSecs ?? -1 { hasChanges = true }
+			}
+			.onChange(of: mapPositionPrecision) {
+				hasChanges = true
+			}
+			.onChange(of: mapReportingOptIn) {
+				hasChanges = true
 			}
 		}
 		.navigationTitle("MQTT Config")
@@ -372,7 +378,8 @@ struct MQTTConfig: View {
 		if LocationsHandler.shared.locationsArray.count > 0 {
 			let region  = RegionCodes(rawValue: Int(node?.loRaConfig?.regionCode ?? 0))
 			defaultTopic = "msh/" + (region?.topic ?? "UNSET")
-			geocoder.reverseGeocodeLocation(LocationsHandler.shared.locationsArray.first!, completionHandler: {(placemarks, error) in
+			guard let currentLocation = LocationsHandler.shared.locationsArray.first else { return }
+		geocoder.reverseGeocodeLocation(currentLocation, completionHandler: {(placemarks, error) in
 				if let error {
 					Logger.services.error("Failed to reverse geocode location: \(error.localizedDescription, privacy: .public)")
 					return

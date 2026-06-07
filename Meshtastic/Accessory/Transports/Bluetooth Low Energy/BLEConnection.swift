@@ -43,6 +43,19 @@ actor BLEConnection: Connection {
 	var central: CBCentralManager
 	private var needsDrain: Bool = false
 	private var isDraining: Bool = false
+
+	// Debug counters for diagnosing BLE data flow
+	nonisolated(unsafe) static var debugFromnumNotifications: Int = 0
+	nonisolated(unsafe) static var debugDrainCalls: Int = 0
+	nonisolated(unsafe) static var debugReadCalls: Int = 0
+	nonisolated(unsafe) static var debugReadDataBytes: Int = 0
+	nonisolated(unsafe) static var debugFromRadioDecoded: Int = 0
+	nonisolated(unsafe) static var debugFromRadioDecodeFail: Int = 0
+	nonisolated(unsafe) static var debugLastError: String = ""
+	nonisolated(unsafe) static var debugSubscribeAttempts: Int = 0
+	nonisolated(unsafe) static var debugSubscribeSuccess: Int = 0
+	nonisolated(unsafe) static var debugSubscribeFail: Int = 0
+	nonisolated(unsafe) static var debugCharDiscovered: String = ""
 	
 	fileprivate var TORADIO_characteristic: CBCharacteristic?
 	fileprivate var FROMRADIO_characteristic: CBCharacteristic?
@@ -52,10 +65,14 @@ actor BLEConnection: Connection {
 	private var connectionStreamContinuation: AsyncStream<ConnectionEvent>.Continuation?
 	
 	private var connectContinuation: CheckedContinuation<Void, Error>?
+	private var rediscoverContinuation: CheckedContinuation<Void, Error>?
 	private var writeContinuations: [CheckedContinuation<Void, Error>]
 	private var readContinuations: [CheckedContinuation<Data, Error>]
 	
 	private var rssiTask: Task<Void, Never>?
+	private var pollTask: Task<Void, Never>?
+	/// Tracks whether notification subscriptions need re-subscribing after BLE pairing completes
+	private var notificationsNeedResubscribe = false
 	
 	var isConnected: Bool { peripheral.state == .connected }
 	var transport: BLETransport?
@@ -126,8 +143,10 @@ actor BLEConnection: Connection {
 		
 		rssiTask?.cancel()
 		rssiTask = nil
+		pollTask?.cancel()
+		pollTask = nil
 	}
-	
+
 	func startDrainPendingPackets() throws {
 		guard isConnected else {
 			throw AccessoryError.ioFailed("Not connected")
@@ -150,33 +169,41 @@ actor BLEConnection: Connection {
 	}
 	
 	func drainPendingPackets() async throws {
+		BLEConnection.debugDrainCalls += 1
 		guard isConnected else {
+			BLEConnection.debugLastError = "drain: not connected"
 			throw AccessoryError.ioFailed("Not connected")
 		}
 		repeat {
 			let data: Data
 			do {
+				BLEConnection.debugReadCalls += 1
 				data = try await read()
 			} catch {
-				// Transport-level read error — disconnect and allow reconnect
-				try? await self.disconnect(withError: error, shouldReconnect: true)
+				BLEConnection.debugLastError = "read error: \(error.localizedDescription)"
+				do {
+					try await self.disconnect(withError: error, shouldReconnect: true)
+				} catch let disconnectError {
+					Logger.transport.error("🛜 [BLE] Failed to disconnect after read error: \(disconnectError.localizedDescription)")
+				}
 				throw error
 			}
 
+			BLEConnection.debugReadDataBytes += data.count
 			if data.count == 0 {
 				break
 			}
 
 			do {
 				let decodedInfo = try FromRadio(serializedBytes: data)
+				BLEConnection.debugFromRadioDecoded += 1
 				connectionStreamContinuation?.yield(.data(decodedInfo))
 			} catch {
+				BLEConnection.debugFromRadioDecodeFail += 1
+				BLEConnection.debugLastError = "decode fail (\(data.count)b): \(error.localizedDescription)"
 				if isInvalidUTF8DecodeError(error) {
-					// Skip known invalid UTF-8 payloads to avoid reconnect loops when
-					// a remote node has corrupt string data in the node database.
 					Logger.transport.error("⚠️ [BLE] Failed to decode FromRadio packet due to invalid UTF-8 (\(data.count) bytes), skipping: \(error)")
 				} else {
-					// Other decode errors are likely transport/framing issues.
 					let decodeError = error
 					do {
 						try await self.disconnect(withError: decodeError, shouldReconnect: true)
@@ -322,31 +349,54 @@ actor BLEConnection: Connection {
 			case TORADIO_UUID:
 				Logger.transport.info("🛜 [BLE] did discover TORADIO characteristic for Meshtastic by \(self.peripheral.name ?? "Unknown", privacy: .public)")
 				TORADIO_characteristic = characteristic
-				
+
 			case FROMRADIO_UUID:
 				Logger.transport.info("🛜 [BLE] did discover FROMRADIO characteristic for Meshtastic by \(self.peripheral.name ?? "Unknown", privacy: .public)")
 				FROMRADIO_characteristic = characteristic
-				self.peripheral.setNotifyValue(true, for: characteristic)
-				
+
 			case FROMNUM_UUID:
 				Logger.transport.info("🛜 [BLE] did discover FROMNUM (Notify) characteristic for Meshtastic by \(self.peripheral.name ?? "Unknown", privacy: .public)")
 				FROMNUM_characteristic = characteristic
-				self.peripheral.setNotifyValue(true, for: characteristic)
-				
+
 			case LOGRADIO_UUID:
 				Logger.transport.info("🛜 [BLE] did discover LOGRADIO (Notify) characteristic for Meshtastic by \(self.peripheral.name ?? "Unknown", privacy: .public)")
 				LOGRADIO_characteristic = characteristic
-				self.peripheral.setNotifyValue(true, for: characteristic)
-				
+
 			default:
 				Logger.transport.info("🛜 [BLE] did discover unsupported \(characteristic.uuid) characteristic for Meshtastic by \(self.peripheral.name ?? "Unknown", privacy: .public)")
 			}
 		}
+
+		// Defer notification subscriptions — do NOT subscribe here.
+		// On devices with PIN-based BLE security (AUTHEN + ENC characteristics),
+		// calling setNotifyValue before pairing triggers NimBLE's security system
+		// which disconnects the link. Instead, mark that subscriptions are needed
+		// and subscribe after the first successful write (which triggers/completes pairing).
+		notificationsNeedResubscribe = true
 		
-		if TORADIO_characteristic != nil && FROMRADIO_characteristic != nil && FROMNUM_characteristic != nil {
+		// Handle rediscovery continuation (from send() retry path)
+		if let cont = rediscoverContinuation {
+			rediscoverContinuation = nil
+			if TORADIO_characteristic != nil {
+				cont.resume()
+			} else {
+				cont.resume(throwing: AccessoryError.discoveryFailed("TORADIO characteristic not found on rediscovery"))
+			}
+			return
+		}
+
+		let chars = [
+				TORADIO_characteristic != nil ? "TO" : "",
+				FROMRADIO_characteristic != nil ? "FR" : "",
+				FROMNUM_characteristic != nil ? "FN" : "",
+				LOGRADIO_characteristic != nil ? "LR" : ""
+			].filter { !$0.isEmpty }.joined(separator: "+")
+			BLEConnection.debugCharDiscovered = chars
+
+			if TORADIO_characteristic != nil && FROMRADIO_characteristic != nil && FROMNUM_characteristic != nil {
 			Logger.transport.info("🛜 [BLE] characteristics ready")
 			self.continueConnectionProcess()
-			
+
 			// Read initial RSSI on ready
 			peripheral.readRSSI()
 		} else {
@@ -378,7 +428,13 @@ actor BLEConnection: Connection {
 				readContinuation.resume(returning: value)
 			}
 		case FROMNUM_UUID:
-			try? startDrainPendingPackets()
+			BLEConnection.debugFromnumNotifications += 1
+			do {
+				try startDrainPendingPackets()
+			} catch {
+				BLEConnection.debugLastError = "drain start: \(error.localizedDescription)"
+				Logger.transport.error("🛜 [BLE] Failed to drain pending packets on FROMNUM notification: \(error.localizedDescription)")
+			}
 			
 		case LOGRADIO_UUID:
 			if let value = characteristic.value,
@@ -425,26 +481,100 @@ actor BLEConnection: Connection {
 	}
 	
 	func send(_ data: ToRadio) async throws {
-		guard let characteristic = TORADIO_characteristic, isConnected else {
-			throw AccessoryError.ioFailed("Not connected or characteristic not found")
+		guard isConnected else {
+			Logger.transport.error("🛜 [BLE] send() failed: peripheral state is \(String(describing: self.peripheral.state.rawValue)), not connected")
+			throw AccessoryError.ioFailed("Not connected to radio (BLE disconnected)")
 		}
-		guard let binaryData = try? data.serializedData() else {
-			throw AccessoryError.ioFailed("Failed to serialize data")
+
+		// If characteristic is nil but we are connected, attempt to rediscover
+		if TORADIO_characteristic == nil {
+			Logger.transport.warning("🛜 [BLE] TORADIO characteristic is nil despite being connected — attempting rediscovery")
+			try await rediscoverCharacteristics()
+		}
+
+		guard let characteristic = TORADIO_characteristic else {
+			Logger.transport.error("🛜 [BLE] send() failed: TORADIO characteristic not found after rediscovery attempt")
+			throw AccessoryError.ioFailed("BLE characteristic not found — try reconnecting")
+		}
+		let binaryData: Data
+		do {
+			binaryData = try data.serializedData()
+		} catch {
+			Logger.transport.error("🛜 [BLE] Failed to serialize ToRadio data: \(error.localizedDescription)")
+			throw AccessoryError.ioFailed("Failed to serialize data: \(error.localizedDescription)")
 		}
 		guard characteristic.properties.contains(.write) ||
 				characteristic.properties.contains(.writeWithoutResponse) else {
 			throw AccessoryError.ioFailed("Characteristic does not support write")
 		}
-		
+
+		// Use .writeWithoutResponse for compatibility — some firmware/NimBLE builds
+		// crash or fail encryption when receiving write-with-response during config
+		// exchange. Reliability is handled at the protocol level (NACK retransmission).
 		let writeType: CBCharacteristicWriteType = characteristic.properties.contains(.writeWithoutResponse) ? .withoutResponse : .withResponse
-		try await withCheckedThrowingContinuation { newWriteContinuation in
-			if writeType == .withoutResponse {
-				peripheral.writeValue(binaryData, for: characteristic, type: writeType)
-				newWriteContinuation.resume()
-			} else {
-				writeContinuations.append(newWriteContinuation)
-				peripheral.writeValue(binaryData, for: characteristic, type: writeType)
+
+		// Retry loop for encryption errors — iOS may still be completing BLE pairing.
+		// PIN entry can take 10-20 seconds (user sees dialog, types 6 digits, taps OK),
+		// so we allow up to 15 retries × 2s = 28 seconds for pairing to complete.
+		let maxWriteRetries = 15
+		for attempt in 0..<maxWriteRetries {
+			do {
+				try await withCheckedThrowingContinuation { newWriteContinuation in
+					if writeType == .withoutResponse {
+						peripheral.writeValue(binaryData, for: characteristic, type: writeType)
+						newWriteContinuation.resume()
+					} else {
+						writeContinuations.append(newWriteContinuation)
+						peripheral.writeValue(binaryData, for: characteristic, type: writeType)
+					}
+				}
+				// Write succeeded — if notifications need re-subscribing (failed before pairing), do it now.
+				// Add a brief delay to let BLE encryption fully stabilize before resubscribing.
+				if notificationsNeedResubscribe {
+					try? await Task.sleep(for: .milliseconds(500))
+					resubscribeNotifications()
+				}
+				return
+			} catch let attError as CBATTError where attError.code == .insufficientEncryption || attError.code == .insufficientAuthentication {
+				if attempt < maxWriteRetries - 1 {
+					Logger.transport.warning("🛜 [BLE] Write failed with encryption error (attempt \(attempt + 1)/\(maxWriteRetries)), waiting for pairing...")
+					try await Task.sleep(for: .seconds(2))
+				} else {
+					Logger.transport.error("🛜 [BLE] Write failed after \(maxWriteRetries) attempts — pairing may have failed")
+					throw AccessoryError.coreBluetoothATTError(attError)
+				}
 			}
+		}
+	}
+
+	/// Attempt to rediscover BLE characteristics if they were lost
+	private func rediscoverCharacteristics() async throws {
+		guard isConnected else { return }
+		guard let service = peripheral.services?.first(where: { $0.uuid == meshtasticServiceCBUUID }) else {
+			Logger.transport.error("🛜 [BLE] rediscoverCharacteristics: meshtastic service not found on peripheral")
+			throw AccessoryError.ioFailed("Meshtastic BLE service not found")
+		}
+		// Check if characteristics are already on the service object
+		if let chars = service.characteristics {
+			for char in chars {
+				switch char.uuid {
+				case TORADIO_UUID: TORADIO_characteristic = char
+				case FROMRADIO_UUID: FROMRADIO_characteristic = char
+				case FROMNUM_UUID: FROMNUM_characteristic = char
+				case LOGRADIO_UUID: LOGRADIO_characteristic = char
+				default: break
+				}
+			}
+			if TORADIO_characteristic != nil {
+				Logger.transport.info("🛜 [BLE] rediscoverCharacteristics: recovered TORADIO from cached service")
+				return
+			}
+		}
+		// If still not found, trigger a fresh discovery
+		Logger.transport.info("🛜 [BLE] rediscoverCharacteristics: triggering fresh characteristic discovery")
+		try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
+			self.rediscoverContinuation = cont
+			peripheral.discoverCharacteristics([TORADIO_UUID, FROMRADIO_UUID, FROMNUM_UUID, LOGRADIO_UUID], for: service)
 		}
 	}
 	
@@ -468,8 +598,14 @@ actor BLEConnection: Connection {
 		switch error {
 		case let attError as CBATTError:
 			 switch attError.code {
+			 case .insufficientEncryption, .insufficientAuthentication:
+				 // These errors occur when iOS hasn't completed BLE pairing/encryption yet.
+				 // Don't disconnect — the pairing dialog may still be active. The write retry
+				 // mechanism in send() will handle retrying after pairing completes.
+				 Logger.transport.warning("🛜 [BLEConnection] ATT error \(attError.code.rawValue) (encryption/auth) — waiting for pairing to complete, not disconnecting")
+				 return
 			 default:
-				 // All CBATTErrors should not try and reconnect
+				 // All other CBATTErrors should not try and reconnect
 				 Logger.transport.error("🛜 [BLEConnection] Disconnected with CBATTError code: \(attError.code.rawValue) - \(attError.localizedDescription)")
 			 }
 		case let cbError as CBError:
@@ -495,6 +631,77 @@ actor BLEConnection: Connection {
 		try await self.disconnect(withError: error, shouldReconnect: shouldReconnect)
 	}
 	
+	func didUpdateNotificationStateFor(characteristic: CBCharacteristic, error: Error?) {
+		BLEConnection.debugSubscribeAttempts += 1
+		if let error {
+			BLEConnection.debugSubscribeFail += 1
+			BLEConnection.debugLastError = "subscribe \(characteristic.meshtasticCharacteristicName): \(error.localizedDescription)"
+			if let attError = error as? CBATTError,
+			   attError.code == .insufficientEncryption || attError.code == .insufficientAuthentication {
+				Logger.transport.warning("🛜 [BLE] Notification subscription failed for \(characteristic.meshtasticCharacteristicName, privacy: .public) — encryption/auth error, will re-subscribe after pairing")
+				notificationsNeedResubscribe = true
+			} else {
+				Logger.transport.error("🛜 [BLE] Notification subscription failed for \(characteristic.meshtasticCharacteristicName, privacy: .public): \(error.localizedDescription)")
+			}
+		} else {
+			BLEConnection.debugSubscribeSuccess += 1
+			Logger.transport.info("🛜 [BLE] Notification subscription succeeded for \(characteristic.meshtasticCharacteristicName, privacy: .public)")
+		}
+	}
+
+	/// Re-subscribes to FROMRADIO, FROMNUM, and LOGRADIO notifications after BLE pairing completes.
+	/// Schedules a follow-up retry in case the first attempt fails (encryption may still be stabilizing).
+	private func resubscribeNotifications() {
+		guard isConnected else { return }
+		Logger.transport.info("🛜 [BLE] Re-subscribing to notifications after pairing completed")
+		subscribeToNotifications()
+		notificationsNeedResubscribe = false
+
+		// Start polling as a fallback in case FROMNUM notifications don't arrive
+		startPolling()
+
+		// Schedule a second attempt after 2 seconds — if the first setNotifyValue calls
+		// fail because BLE encryption wasn't fully established yet, this retry catches it.
+		// If they already succeeded, the second call is harmless (CoreBluetooth ignores
+		// duplicate subscriptions).
+		Task {
+			try? await Task.sleep(for: .seconds(2))
+			guard self.isConnected else { return }
+			Logger.transport.info("🛜 [BLE] Re-subscribing to notifications (follow-up retry)")
+			self.subscribeToNotifications()
+		}
+	}
+
+	/// Starts a background polling loop that periodically triggers a FromRadio drain.
+	/// This is a fallback for when FROMNUM notifications aren't arriving from the firmware.
+	/// Without this, the phone never knows to read new data from the device.
+	private func startPolling() {
+		pollTask?.cancel()
+		pollTask = Task {
+			// Initial delay to let notification-based drain work first
+			try? await Task.sleep(for: .seconds(3))
+			while !Task.isCancelled && self.isConnected {
+				do {
+					try self.startDrainPendingPackets()
+				} catch {
+					// Ignore drain errors during polling
+				}
+				try? await Task.sleep(for: .milliseconds(500))
+			}
+		}
+	}
+
+	/// Subscribes to FROMRADIO, FROMNUM, and LOGRADIO notifications.
+	private func subscribeToNotifications() {
+		// Note: FROMRADIO is READ-only, no notifications needed (and attempting fails with "not supported")
+		if let char = FROMNUM_characteristic {
+			peripheral.setNotifyValue(true, for: char)
+		}
+		if let char = LOGRADIO_characteristic {
+			peripheral.setNotifyValue(true, for: char)
+		}
+	}
+
 	func appDidEnterBackground() {
 		if let task = self.rssiTask {
 			Logger.transport.info("🛜 [BLE] App is entering the background, suspending RSSI reports.")
@@ -544,5 +751,9 @@ class BLEConnectionDelegate: NSObject, CBPeripheralDelegate {
 	
 	func peripheral(_ peripheral: CBPeripheral, didReadRSSI RSSI: NSNumber, error: Error?) {
 		Task { await connection?.didReadRSSI(RSSI: RSSI, error: error) }
+	}
+
+	func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
+		Task { await connection?.didUpdateNotificationStateFor(characteristic: characteristic, error: error) }
 	}
 }

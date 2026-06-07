@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import PhotosUI
 import OSLog
 
 struct GroupConversationView: View {
@@ -14,12 +15,20 @@ struct GroupConversationView: View {
 	@EnvironmentObject var accessoryManager: AccessoryManager
 	@Environment(\.modelContext) private var context
 	@ObservedObject private var groupService = GroupMessageService.shared
+	@ObservedObject private var meshReliable = MeshReliableService.shared
 	@Environment(\.dismiss) private var dismiss
 	@FocusState private var messageFieldFocused: Bool
 	@State private var typingMessage: String = ""
 	@State private var totalBytes: Int = 0
 	@State private var showingLeaveConfirmation = false
 	@State private var showCopiedNotification = false
+	@State private var sendPositionWithMessage = false
+	@State private var showToolbar = false
+	@State private var showAddMember = false
+	@State private var sendErrorMessage: String?
+	@State private var showVoiceMemoRecorder = false
+	@State private var showImagePicker = false
+	@State private var selectedPhotoItem: PhotosPickerItem?
 
 	let groupId: UInt32
 
@@ -35,6 +44,11 @@ struct GroupConversationView: View {
 		UInt32(UserDefaults.preferredPeripheralNum)
 	}
 
+	private var groupDestination: MessageDestination? {
+		guard let group else { return nil }
+		return .group(groupId: groupId, channelIndex: Int32(group.channelIndex))
+	}
+
 	var body: some View {
 		VStack(spacing: 0) {
 			ScrollViewReader { scrollView in
@@ -47,6 +61,36 @@ struct GroupConversationView: View {
 								context: context
 							)
 							.id(message.messageId)
+						}
+						// Pending outgoing images for this group
+						if let group {
+							ForEach(meshReliable.pendingImages.filter { $0.channel == Int32(group.channelIndex) && $0.toUserNum == 0 }) { pending in
+								if let uiImage = UIImage(data: pending.imageData) {
+									InlineImageBubble(
+										image: uiImage,
+										isFromMe: true,
+										caption: nil,
+										progress: pending.isSending ? pending.progress : nil,
+										error: pending.error,
+										onRetry: {
+											meshReliable.retryPendingImage(id: pending.id, accessoryManager: accessoryManager)
+										}
+									)
+								}
+							}
+							// Pending outgoing voice memos for this group
+							ForEach(meshReliable.pendingVoiceMemos.filter { $0.channel == Int32(group.channelIndex) && $0.toUserNum == 0 }) { pending in
+								InlineVoiceMemoBubble(
+									duration: pending.duration,
+									isFromMe: true,
+									audioData: pending.pcmData,
+									progress: pending.isSending ? pending.progress : nil,
+									error: pending.error,
+									onRetry: {
+										meshReliable.retryPendingVoiceMemo(id: pending.id, accessoryManager: accessoryManager)
+									}
+								)
+							}
 						}
 						Color.clear
 							.frame(height: 1)
@@ -99,6 +143,13 @@ struct GroupConversationView: View {
 						}
 						Section {
 							Button {
+								showAddMember = true
+							} label: {
+								Label("Add Member", systemImage: "person.badge.plus")
+							}
+						}
+						Section {
+							Button {
 								UIPasteboard.general.string = group.groupId.toHex()
 								showCopiedNotification = true
 								DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
@@ -121,6 +172,9 @@ struct GroupConversationView: View {
 				}
 			}
 		}
+		.sheet(isPresented: $showAddMember) {
+			AddMemberSheet(groupId: groupId)
+		}
 		.confirmationDialog("Leave Group?", isPresented: $showingLeaveConfirmation, titleVisibility: .visible) {
 			Button("Leave", role: .destructive) {
 				Task {
@@ -129,6 +183,8 @@ struct GroupConversationView: View {
 					} catch {
 						groupService.joinedGroups.removeValue(forKey: groupId)
 						groupService.groupMessages.removeValue(forKey: groupId)
+						groupService.groupRosters.removeValue(forKey: groupId)
+						groupService.unreadCounts.removeValue(forKey: groupId)
 						groupService.saveState()
 					}
 					dismiss()
@@ -150,40 +206,118 @@ struct GroupConversationView: View {
 					.animation(.easeInOut, value: showCopiedNotification)
 					.padding(.top, 8)
 			}
+			if let errorMsg = sendErrorMessage {
+				HStack {
+					Image(systemName: "exclamationmark.triangle.fill")
+						.foregroundColor(.white)
+					Text(errorMsg)
+						.font(.callout)
+						.foregroundColor(.white)
+					Spacer()
+					Button {
+						sendErrorMessage = nil
+					} label: {
+						Image(systemName: "xmark.circle.fill")
+							.foregroundColor(.white.opacity(0.8))
+					}
+				}
+				.padding(.horizontal, 12)
+				.padding(.vertical, 10)
+				.background(Color.red, in: RoundedRectangle(cornerRadius: 10))
+				.padding(.horizontal, 8)
+				.padding(.top, 8)
+				.transition(.move(edge: .top).combined(with: .opacity))
+				.animation(.easeInOut, value: sendErrorMessage)
+			}
 		}
 	}
 
 	// MARK: - Message Input
 
 	private var groupMessageInput: some View {
-		HStack(alignment: .bottom) {
-			TextField("Message", text: $typingMessage, axis: .vertical)
-				.frame(minHeight: 36)
-				.padding(.horizontal, 16)
-				.padding(.vertical, 8)
-				.background(
-					RoundedRectangle(cornerRadius: 20)
-						.strokeBorder(.tertiary, lineWidth: 1)
-				)
-				.focused($messageFieldFocused)
-				.onChange(of: typingMessage) {
-					totalBytes = typingMessage.utf8.count
-				}
-				.onSubmit {
-					sendMessage()
-				}
+		VStack(spacing: 0) {
+			HStack(alignment: .bottom) {
+				TextField("Message", text: $typingMessage, axis: .vertical)
+					.frame(minHeight: 36)
+					.padding(.horizontal, 16)
+					.padding(.vertical, 8)
+					.background(
+						RoundedRectangle(cornerRadius: 20)
+							.strokeBorder(.tertiary, lineWidth: 1)
+					)
+					.focused($messageFieldFocused)
+					.onChange(of: typingMessage) {
+						totalBytes = typingMessage.utf8.count
+					}
+					.onSubmit {
+						sendMessage()
+					}
 
-			Button {
-				sendMessage()
-			} label: {
-				Image(systemName: "arrow.up.circle.fill")
-					.font(.title2)
-					.foregroundColor(typingMessage.isEmpty ? .secondary : .accentColor)
+				if !typingMessage.isEmpty {
+					Button {
+						sendMessage()
+					} label: {
+						Image(systemName: "arrow.up.circle.fill")
+							.font(.title2)
+							.foregroundColor(.accentColor)
+					}
+					.disabled(totalBytes > 200 || !accessoryManager.isConnected)
+				}
 			}
-			.disabled(typingMessage.isEmpty || totalBytes > 200)
+			.padding(.horizontal, 12)
+			.padding(.vertical, 8)
+
+			if showToolbar {
+				Divider()
+				groupComposeToolbar
+					.padding(.horizontal, 15)
+					.padding(.vertical, 8)
+					.background(.bar)
+			}
 		}
-		.padding(.horizontal, 12)
-		.padding(.vertical, 8)
+		.onChange(of: messageFieldFocused) { _, focused in
+			if focused {
+				showToolbar = true
+			} else {
+				DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+					if !messageFieldFocused {
+						showToolbar = false
+					}
+				}
+			}
+		}
+	}
+
+	private var groupComposeToolbar: some View {
+		HStack {
+			Spacer()
+			AlertButton(action: {
+				typingMessage += "\u{7}"
+				sendMessage()
+			}, compact: true)
+			Spacer()
+			RequestPositionButton(action: {
+				let userLongName = accessoryManager.activeConnection?.device.longName ?? "Unknown"
+				sendPositionWithMessage = true
+				typingMessage = "\u{1F4CD} " + userLongName + " has shared their position with the group."
+				sendMessage()
+			}, compact: true)
+			Spacer()
+			VoiceMemoButton(action: { showVoiceMemoRecorder = true }, compact: true)
+			Spacer()
+			ImageButton(action: { showImagePicker = true }, compact: true)
+			Spacer()
+			TextMessageSize(maxbytes: 200, totalBytes: totalBytes, compact: true)
+		}
+		.sheet(isPresented: $showVoiceMemoRecorder) {
+			if let dest = groupDestination {
+				VoiceMemoRecorder(destination: dest)
+			}
+		}
+		.photosPicker(isPresented: $showImagePicker, selection: $selectedPhotoItem, matching: .images)
+		.onChange(of: selectedPhotoItem) { _, newItem in
+			handlePhotoSelection(newItem)
+		}
 	}
 
 	// MARK: - Send
@@ -194,6 +328,10 @@ struct GroupConversationView: View {
 		typingMessage = ""
 
 		Task {
+			// Signal media uploads to pause while text is sent
+			meshReliable.signalTextSending()
+			defer { meshReliable.signalTextSent() }
+
 			do {
 				try await groupService.sendGroupText(
 					text: text,
@@ -202,9 +340,30 @@ struct GroupConversationView: View {
 					members: group.members,
 					accessoryManager: accessoryManager
 				)
+				sendErrorMessage = nil
 			} catch {
 				Logger.mesh.error("Failed to send group message: \(error.localizedDescription)")
+				typingMessage = text
+				sendErrorMessage = "Failed to send: \(error.localizedDescription)"
 			}
+		}
+	}
+
+	// MARK: - Photo Selection
+
+	private func handlePhotoSelection(_ item: PhotosPickerItem?) {
+		guard let item, let group else { return }
+		Task {
+			if let data = try? await item.loadTransferable(type: Data.self),
+			   let image = UIImage(data: data) {
+				meshReliable.sendImageInline(
+					image: image,
+					toUserNum: 0, // broadcast
+					channel: Int32(group.channelIndex),
+					accessoryManager: accessoryManager
+				)
+			}
+			selectedPhotoItem = nil
 		}
 	}
 
@@ -212,7 +371,12 @@ struct GroupConversationView: View {
 
 	private func nodeName(for nodeNum: UInt32) -> String {
 		if let node = getNodeInfo(id: Int64(nodeNum), context: context) {
-			return node.user?.longName ?? nodeNum.toHex()
+			let name = node.user?.longName ?? nodeNum.toHex()
+			if let region = node.loRaConfig?.regionCode, region != 0 {
+				let band = BandGroup.from(regionCode: region)
+				return "\(name) (\(band.label))"
+			}
+			return name
 		}
 		return nodeNum.toHex()
 	}
@@ -285,21 +449,34 @@ struct GroupMessageRow: View {
 
 	@ViewBuilder
 	private func ackStatusView(_ status: GroupAckStatus) -> some View {
-		HStack(spacing: 4) {
+		HStack(spacing: 2) {
 			if status.allAcked {
-				Image(systemName: "checkmark.circle.fill")
-					.foregroundColor(.green)
-					.font(.caption2)
-				Text("All received")
-					.font(.caption2)
-					.foregroundColor(.green)
-			} else {
-				Image(systemName: "checkmark.circle")
+				// All members ACKed: double blue checkmarks
+				Image(systemName: "checkmark")
+					.font(.system(size: 11, weight: .bold))
+					.foregroundColor(.blue)
+				Image(systemName: "checkmark")
+					.font(.system(size: 11, weight: .bold))
+					.foregroundColor(.blue)
+					.offset(x: -6)
+			} else if status.ackedBy.isEmpty {
+				// Sent, no ACKs yet: single gray checkmark
+				Image(systemName: "checkmark")
+					.font(.system(size: 11, weight: .medium))
 					.foregroundColor(.secondary)
-					.font(.caption2)
+			} else {
+				// Partial ACKs: double gray checkmarks + count
+				Image(systemName: "checkmark")
+					.font(.system(size: 11, weight: .medium))
+					.foregroundColor(.secondary)
+				Image(systemName: "checkmark")
+					.font(.system(size: 11, weight: .medium))
+					.foregroundColor(.secondary)
+					.offset(x: -6)
 				Text("\(status.ackedBy.count)/\(status.members.count)")
 					.font(.caption2)
 					.foregroundColor(.secondary)
+					.offset(x: -4)
 			}
 		}
 	}

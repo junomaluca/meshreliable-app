@@ -58,32 +58,6 @@ struct GroupList: View {
 				}
 			} else {
 				List(selection: $selectedGroupId) {
-					// Action buttons at top
-					Section {
-						HStack(spacing: 12) {
-							Button {
-								showingCreateGroup = true
-							} label: {
-								Label("Create", systemImage: "plus.circle.fill")
-									.frame(maxWidth: .infinity)
-							}
-							.buttonStyle(.bordered)
-							.tint(.accentColor)
-
-							Button {
-								showingJoinGroup = true
-							} label: {
-								Label("Join", systemImage: "person.badge.plus")
-									.frame(maxWidth: .infinity)
-							}
-							.buttonStyle(.bordered)
-							.tint(.accentColor)
-						}
-						.listRowBackground(Color.clear)
-						.listRowSeparator(.hidden)
-					}
-
-					// Group list
 					Section {
 						ForEach(sortedGroups) { group in
 							NavigationLink(value: group.groupId) {
@@ -144,6 +118,7 @@ struct GroupList: View {
 				// Fallback: remove locally even if send fails
 				groupService.groupMessages.removeValue(forKey: group.groupId)
 				groupService.joinedGroups.removeValue(forKey: group.groupId)
+				groupService.groupRosters.removeValue(forKey: group.groupId)
 				groupService.unreadCounts.removeValue(forKey: group.groupId)
 				groupService.saveState()
 			}

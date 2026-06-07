@@ -236,13 +236,33 @@ private struct FilteredNodeList: View {
 	}
 
 	private var filteredNodes: [NodeInfoEntity] {
-		allNodes
+		let myLocation = LocationsHandler.shared.locationsArray.last
+		let hasValidLocation = myLocation != nil
+			&& myLocation!.coordinate.latitude != LocationsHandler.DefaultLocation.latitude
+			&& myLocation!.coordinate.longitude != LocationsHandler.DefaultLocation.longitude
+		let myCoord = hasValidLocation ? myLocation! : nil
+
+		return allNodes
 			.filter { filters.matchesPostPredicate($0) }
 			.sorted {
 				if $0.ignored != $1.ignored { return !$0.ignored && $1.ignored }
 				if $0.favorite != $1.favorite { return $0.favorite && !$1.favorite }
+				// Sort by distance if we have a valid location, then fall back to lastHeard
+				if let myCoord {
+					let dist0 = distanceToNode($0, from: myCoord)
+					let dist1 = distanceToNode($1, from: myCoord)
+					if dist0 != dist1 { return dist0 < dist1 }
+				}
 				return ($0.lastHeard ?? .distantPast) > ($1.lastHeard ?? .distantPast)
 			}
+	}
+
+	private func distanceToNode(_ node: NodeInfoEntity, from location: CLLocation) -> Double {
+		guard let position = node.latestPosition,
+			  let coord = position.nodeCoordinate else {
+			return Double.greatestFiniteMagnitude
+		}
+		return location.distance(from: CLLocation(latitude: coord.latitude, longitude: coord.longitude))
 	}
 
 	// The body of the view

@@ -85,7 +85,6 @@ extension AccessoryManager {
 	}
 
 	func stopDiscovery() {
-		devices.removeAll()
 		discoveryTask?.cancel()
 		discoveryTask = nil
 		devices.removeAll()

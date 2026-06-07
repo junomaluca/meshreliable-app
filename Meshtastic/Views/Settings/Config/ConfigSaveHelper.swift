@@ -44,7 +44,8 @@ func performConfigSave(
 		  let fromUser = connectedNode.user,
 		  let toUser = node?.user
 	else {
-		Logger.mesh.warning("⚠️ Cannot save config: missing connected node or user entities")
+		Logger.mesh.warning("⚠️ Cannot save config: missing connected node or user entities (activeDeviceNum=\(String(describing: accessoryManager.activeDeviceNum)), node=\(String(describing: node)), nodeUser=\(String(describing: node?.user)))")
+		accessoryManager.lastConnectionError = AccessoryError.appError("Config save failed: device connection state is incomplete. Try reconnecting.")
 		return
 	}
 
@@ -52,9 +53,17 @@ func performConfigSave(
 		do {
 			try await save(fromUser, toUser)
 			hasChanges.wrappedValue = false
+			// Proactively disconnect before dismissing. Many config saves
+			// cause the device to reboot, which triggers a CBError disconnect
+			// that the app would auto-reconnect from — and then the user
+			// manually disconnects again, hitting a race where the device
+			// is removed from the cache while still rebooting and can't
+			// re-advertise in time to reappear in the device list.
+			try? await accessoryManager.disconnect()
 			dismiss()
 		} catch {
 			Logger.mesh.error("🚨 Config save failed: \(error.localizedDescription)")
+			accessoryManager.lastConnectionError = AccessoryError.appError("Config save failed: \(error.localizedDescription)")
 		}
 	}
 }

@@ -215,6 +215,16 @@ extension AccessoryManager {
 				}
 			}
 			
+			// Step 7.5: Auto-provision MeshReliable defaults if needed
+			Step { @MainActor _ in
+				guard let deviceNum = self.activeDeviceNum else { return }
+				let context = self.context
+				if let connectedNode = getNodeInfo(id: deviceNum, context: context),
+				   MeshReliableDefaults.needsProvisioning(node: connectedNode) {
+					await MeshReliableDefaults.applyAll(accessoryManager: self)
+				}
+			}
+
 			// Step 8: Update UI and status to connected
 			Step { @MainActor _ in
 				Logger.transport.debug("🔗👟 [Connect] Step 8: Initialize MQTT and Location Provider")
@@ -251,6 +261,11 @@ extension AccessoryManager {
 			Logger.transport.debug("🔗 [Connect] ConnectionStepper completed.")
 		} catch AccessoryError.tooManyRetries {
 			self.lastConnectionError = AccessoryError.tooManyRetries
+			try await self.closeConnection()
+			updateState(.discovering)
+		} catch is CancellationError {
+			// User-initiated disconnect — don't display as an error
+			Logger.transport.debug("🔗 [Connect] ConnectionStepper cancelled (user disconnect)")
 			try await self.closeConnection()
 			updateState(.discovering)
 		} catch {
