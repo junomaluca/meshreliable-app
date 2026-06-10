@@ -78,7 +78,6 @@ struct UserConfig: View {
 					HStack {
 						Label("Short Name", systemImage: "circlebadge.fill")
 						TextField("Short Name", text: $shortName)
-							.foregroundColor(.gray)
 							.onChange(of: shortName) {
 								let newValue = shortName.withoutVariationSelectors
 								let totalBytes = newValue.utf8.count
@@ -92,7 +91,6 @@ struct UserConfig: View {
 									shortName = newValue
 								}
 							}
-							.foregroundColor(.gray)
 					}
 					.keyboardType(.default)
 					.disableAutocorrection(true)

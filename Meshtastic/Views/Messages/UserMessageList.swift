@@ -34,6 +34,7 @@ struct UserMessageList: View {
 		_allPrivateMessages = Query(
 			filter: #Predicate<MessageEntity> {
 				($0.fromUser?.num == userNum || $0.toUser?.num == userNum)
+				&& $0.toUser != nil // exclude channel/broadcast msgs (toUser==nil) so they don't leak into the DM thread
 				&& $0.isEmoji == false && $0.admin == false && $0.portNum != detectionSensorPortNum
 			},
 			sort: \MessageEntity.messageTimestamp
