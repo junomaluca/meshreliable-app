@@ -25,6 +25,15 @@ read this first — each prevents a real, observed bug.
    `toUser == nil`) matches `fromUser == userNum` and **leaks into that node's DM
    thread**. Group/channel messages belong in the channel view, not DMs.
 
+3. **Auto-provisioning must stay once-per-node** —
+   `Meshtastic/Services/MeshReliableDefaults.swift` + `AccessoryManager+Connect.swift`
+   `applyAll` overwrites a node's whole config with defaults; it must run only on a node's
+   **first** connect (guarded by `hasBeenProvisioned`/`markProvisioned`). Do NOT call
+   `applyAll` on every connect — `needsProvisioning` returns true for any node still on the
+   default MQTT broker, so re-running it silently clobbers the user's own config edits.
+   (Known still-open issue: `applyLoRaConfig` hardcodes `region = .us`, wrong for 144 MHz
+   VHF nodes — don't let provisioning force-set region on an already-configured node.)
+
 ## Build / deploy
 
 - Workspace: `Meshtastic.xcworkspace`, scheme `Meshtastic`.
