@@ -79,6 +79,7 @@ extension AccessoryManager {
 					}
 					self.activeConnection = (device: device, connection: connection)
 					self.activeDeviceNum = device.num
+					self.isVirtualMQTT = (device.transportType == .mqttVirtual)
 				} catch let error as CBError where error.code == .peerRemovedPairingInformation {
 					await self.connectionStepper?.cancelCurrentlyExecutingStep(withError: AccessoryError.coreBluetoothError(error), cancelFullProcess: true)
 				}
@@ -217,11 +218,21 @@ extension AccessoryManager {
 			
 			// Step 7.5: Auto-provision MeshReliable defaults if needed
 			Step { @MainActor _ in
+				guard device.transportType != .mqttVirtual else {
+					Logger.transport.info("👟 [Connect] Step 7.5: mqttVirtual, skipping auto-provision")
+					return
+				}
 				guard let deviceNum = self.activeDeviceNum else { return }
 				let context = self.context
+				// Provision AT MOST ONCE per node. Re-running applyAll on every connect was
+				// silently overwriting the user's own config edits (it re-applies defaults to any
+				// node still on the default MQTT broker). First connect still provisions as before.
 				if let connectedNode = getNodeInfo(id: deviceNum, context: context),
-				   MeshReliableDefaults.needsProvisioning(node: connectedNode) {
-					await MeshReliableDefaults.applyAll(accessoryManager: self)
+				   !MeshReliableDefaults.hasBeenProvisioned(nodeNum: deviceNum) {
+					if MeshReliableDefaults.needsProvisioning(node: connectedNode) {
+						await MeshReliableDefaults.applyAll(accessoryManager: self)
+					}
+					MeshReliableDefaults.markProvisioned(nodeNum: deviceNum)
 				}
 			}
 
@@ -229,7 +240,9 @@ extension AccessoryManager {
 			Step { @MainActor _ in
 				Logger.transport.debug("🔗👟 [Connect] Step 8: Initialize MQTT and Location Provider")
 				self.stopDiscovery()
-				await self.initializeMqtt()
+				if device.transportType != .mqttVirtual {
+					await self.initializeMqtt()
+				}
 				self.initializeLocationProvider()
 				if transport.requiresPeriodicHeartbeat {
 					await self.setupPeriodicHeartbeat()

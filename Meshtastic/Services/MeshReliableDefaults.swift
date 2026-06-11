@@ -13,6 +13,32 @@ struct MeshReliableDefaults {
 
 	private static let configDelay: Duration = .seconds(2)
 
+	// MARK: - One-time guard
+	//
+	// Auto-provisioning must run AT MOST ONCE per node. Without this guard `applyAll` re-runs
+	// on every connect for any node still on the default MQTT broker (see `needsProvisioning`),
+	// silently overwriting the user's own config edits each time they reconnect. The guard is
+	// purely additive — it never changes whether a node is provisioned on its FIRST connect,
+	// only prevents re-provisioning on subsequent ones.
+
+	private static let provisionedKey = "meshReliableProvisionedNodeNums"
+
+	/// True if this node has already been evaluated for provisioning in a previous session/connect.
+	static func hasBeenProvisioned(nodeNum: Int64) -> Bool {
+		let provisioned = UserDefaults.standard.array(forKey: provisionedKey) as? [Int] ?? []
+		return provisioned.contains(Int(truncatingIfNeeded: nodeNum))
+	}
+
+	/// Record that this node has been evaluated for provisioning, so we never auto-apply defaults to it again.
+	static func markProvisioned(nodeNum: Int64) {
+		var provisioned = UserDefaults.standard.array(forKey: provisionedKey) as? [Int] ?? []
+		let key = Int(truncatingIfNeeded: nodeNum)
+		if !provisioned.contains(key) {
+			provisioned.append(key)
+			UserDefaults.standard.set(provisioned, forKey: provisionedKey)
+		}
+	}
+
 	// MARK: - Detection
 
 	/// Returns true if the connected node appears to have factory-default settings
