@@ -188,6 +188,8 @@ struct TextMessageField: View {
 	private func sendMessage() {
 		let messageToSend = typingMessage
 		let replyId = replyMessageId
+		let alsoSendPosition = sendPositionWithMessage
+		sendPositionWithMessage = false
 		typingMessage = ""
 		isFocused = false
 		replyMessageId = 0
@@ -204,20 +206,27 @@ struct TextMessageField: View {
 					channel: destination.channelNum,
 					isEmoji: false,
 					replyID: replyId)
+			} catch {
+				// Only the text send failing should restore the draft for retry.
+				Logger.mesh.error("Error sending message: \(error.localizedDescription)")
+				typingMessage = messageToSend
+				replyMessageId = replyId
+				return
+			}
 
-				if sendPositionWithMessage {
-					sendPositionWithMessage = false
+			// The text already went out — a position-send failure must NOT repopulate the
+			// text box (that left a stray copy of the location message after sharing).
+			if alsoSendPosition {
+				do {
 					try await accessoryManager.sendPosition(
 						channel: destination.channelNum,
 						destNum: destination.positionDestNum,
 						wantResponse: destination.wantPositionResponse
 					)
 					Logger.mesh.info("Location Sent")
+				} catch {
+					Logger.mesh.error("Error sending position: \(error.localizedDescription)")
 				}
-			} catch {
-				Logger.mesh.error("Error sending message: \(error.localizedDescription)")
-				typingMessage = messageToSend
-				replyMessageId = replyId
 			}
 		}
 	}
