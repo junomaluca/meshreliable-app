@@ -508,10 +508,29 @@ actor BLEConnection: Connection {
 			throw AccessoryError.ioFailed("Characteristic does not support write")
 		}
 
-		// Use .writeWithoutResponse for compatibility — some firmware/NimBLE builds
+		// Prefer .writeWithoutResponse for compatibility — some firmware/NimBLE builds
 		// crash or fail encryption when receiving write-with-response during config
 		// exchange. Reliability is handled at the protocol level (NACK retransmission).
-		let writeType: CBCharacteristicWriteType = characteristic.properties.contains(.writeWithoutResponse) ? .withoutResponse : .withResponse
+		//
+		// HOWEVER: CoreBluetooth SILENTLY DROPS a .withoutResponse write that exceeds
+		// maximumWriteValueLength(for: .withoutResponse) — no error, no callback. Small
+		// packets (acks, config exchange) fit, but large ones (e.g. a group JOIN/TEXT
+		// carrying members + roster, ~80-120 bytes) were silently lost and never reached
+		// the radio. .withResponse uses ATT queued/long writes and handles large payloads.
+		// So: small → .withoutResponse (preserves the config-exchange behavior above),
+		// large → .withResponse.
+		let canNoResponse = characteristic.properties.contains(.writeWithoutResponse)
+		let canWithResponse = characteristic.properties.contains(.write)
+		let noResponseMax = peripheral.maximumWriteValueLength(for: .withoutResponse)
+		let writeType: CBCharacteristicWriteType
+		if canNoResponse && (binaryData.count <= noResponseMax || !canWithResponse) {
+			writeType = .withoutResponse
+		} else {
+			writeType = .withResponse
+		}
+		if writeType == .withResponse && binaryData.count > noResponseMax {
+			Logger.transport.info("🛜 [BLE] \(binaryData.count)B > withoutResponse max \(noResponseMax)B — using .withResponse for reliable large write")
+		}
 
 		// Retry loop for encryption errors — iOS may still be completing BLE pairing.
 		// PIN entry can take 10-20 seconds (user sees dialog, types 6 digits, taps OK),

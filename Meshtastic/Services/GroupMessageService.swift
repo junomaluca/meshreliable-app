@@ -665,9 +665,12 @@ final class GroupMessageService: ObservableObject {
 	// MARK: - Receiving
 
 	func handleIncomingPacket(_ packet: MeshPacket) {
-		// Filter out echoes of our own broadcasts
-		let myNum = UInt32(UserDefaults.preferredPeripheralNum)
-		if myNum > 0 && packet.from == myNum {
+		// Filter out echoes of our own broadcasts. Check BOTH preferredPeripheralNum and the
+		// active device's node num — these can differ, and if our own broadcast isn't recognized
+		// the app ends up ACKing its own messages (mesh-flooding spurious group ACKs).
+		let prefNum = UInt32(UserDefaults.preferredPeripheralNum)
+		let deviceNum = AccessoryManager.shared.activeConnection?.device.num.map { UInt32(truncatingIfNeeded: $0) }
+		if (prefNum > 0 && packet.from == prefNum) || (deviceNum != nil && packet.from == deviceNum) {
 			Logger.mesh.debug("GroupMessageService: Dropping echoed packet from self")
 			return
 		}
