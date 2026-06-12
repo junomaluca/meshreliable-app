@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 import OSLog
+import CoreLocation
 
 struct CreateGroupSheet: View {
 
@@ -22,13 +23,61 @@ struct CreateGroupSheet: View {
 
 	@Query(sort: \NodeInfoEntity.lastHeard, order: .reverse) private var nodes: [NodeInfoEntity]
 
+	private static let distanceFormatter: MeasurementFormatter = {
+		let f = MeasurementFormatter()
+		f.unitOptions = .naturalScale
+		f.numberFormatter.maximumFractionDigits = 1
+		return f
+	}()
+
+	/// The connected device's node number (the reference point for proximity ranking).
+	private var connectedNodeNum: Int64? {
+		if let num = accessoryManager.activeDeviceNum, num != 0 { return num }
+		let pref = Int64(UserDefaults.preferredPeripheralNum)
+		return pref > 0 ? pref : nil
+	}
+
+	/// The most recent valid GPS fix for a node, as a CLLocation (nil if unknown).
+	private func location(of node: NodeInfoEntity) -> CLLocation? {
+		let pos = node.positions.first(where: { $0.latest && $0.latitudeI != 0 && $0.longitudeI != 0 })
+			?? node.positions.last(where: { $0.latitudeI != 0 && $0.longitudeI != 0 })
+		guard let coord = pos?.nodeCoordinate else { return nil }
+		return CLLocation(latitude: coord.latitude, longitude: coord.longitude)
+	}
+
+	/// Proximity is measured from the connected node; fall back to the phone's own location.
+	private var referenceLocation: CLLocation? {
+		if let myNum = connectedNodeNum,
+		   let myNode = nodes.first(where: { $0.num == myNum }),
+		   let loc = location(of: myNode) {
+			return loc
+		}
+		return LocationsHandler.shared.locationsArray.last
+	}
+
+	/// Candidate members, ranked nearest-first by geographic distance to the connected node.
+	/// Nodes with no known position sort last; ties keep the lastHeard order (stable).
 	private var availableNodes: [NodeInfoEntity] {
-		let myNum = Int64(UserDefaults.preferredPeripheralNum)
+		let myNum = connectedNodeNum
 		var seen = Set<Int64>()
-		return nodes.filter { node in
-			guard node.num != myNum && node.user != nil else { return false }
+		let filtered = nodes.filter { node in
+			guard node.user != nil else { return false }
+			if let myNum, node.num == myNum { return false }
 			return seen.insert(node.num).inserted
 		}
+		guard let ref = referenceLocation else { return filtered }
+		return filtered.enumerated().sorted { lhs, rhs in
+			let da = location(of: lhs.element).map { $0.distance(from: ref) } ?? .greatestFiniteMagnitude
+			let db = location(of: rhs.element).map { $0.distance(from: ref) } ?? .greatestFiniteMagnitude
+			if da != db { return da < db }
+			return lhs.offset < rhs.offset
+		}.map { $0.element }
+	}
+
+	/// Formatted "nearby" distance for a node row, or nil if its position is unknown.
+	private func distanceText(for node: NodeInfoEntity) -> String? {
+		guard let ref = referenceLocation, let loc = location(of: node) else { return nil }
+		return Self.distanceFormatter.string(from: Measurement(value: loc.distance(from: ref), unit: UnitLength.meters))
 	}
 
 	var body: some View {
@@ -56,9 +105,14 @@ struct CreateGroupSheet: View {
 									VStack(alignment: .leading) {
 										Text(node.user?.longName ?? node.num.toHex())
 											.foregroundColor(.primary)
-										Text(node.num.toHex())
-											.font(.caption)
-											.foregroundColor(.secondary)
+										HStack(spacing: 6) {
+											Text(node.num.toHex())
+											if let dist = distanceText(for: node) {
+												Text("· \(dist)")
+											}
+										}
+										.font(.caption)
+										.foregroundColor(.secondary)
 									}
 									Spacer()
 									if selectedNodes.contains(node.num) {
