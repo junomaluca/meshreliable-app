@@ -206,6 +206,15 @@ final class DebugHTTPServer: @unchecked Sendable {
 			return handleNavigate(body: body)
 		case ("GET", "/ble-debug"):
 			return handleBleDebug()
+		case ("GET", "/ble-writes"):
+			let lines = BLEConnection.debugWriteLog.map { "\"\($0.replacingOccurrences(of: "\"", with: "'"))\"" }.joined(separator: ",")
+			return "[\(lines)]"
+		case ("GET", "/fw-log"):
+			let lines = AccessoryManager.firmwareLogBuffer.map { "\"\($0.replacingOccurrences(of: "\\", with: "/").replacingOccurrences(of: "\"", with: "'"))\"" }.joined(separator: ",")
+			return "[\(lines)]"
+		case ("POST", "/action/clear-fw-log"):
+			AccessoryManager.firmwareLogBuffer.removeAll()
+			return "{\"ok\":true}"
 		case ("POST", "/action/clear-transfers"):
 			return handleClearTransfers()
 		case ("POST", "/action/ble-reconnect"):

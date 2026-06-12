@@ -884,10 +884,45 @@ final class GroupMessageService: ObservableObject {
 
 	// MARK: - Transport
 
+	/// Send a group packet. If `unicastTo` is supplied, the packet is delivered as a separate
+	/// RELIABLE UNICAST (want_ack) to each member — NOT a broadcast.
+	///
+	/// Why: a phone-originated BROADCAST on portnum 258 is consumed by the radio's local-loopback
+	/// path (Router::sendLocal calls handleReceived() for broadcasts before send()) and never
+	/// actually reaches the mesh — verified: identical bytes transmit fine over USB but a BLE
+	/// broadcast produces only a local ACK and 0 deliveries. Per-member unicast skips that path,
+	/// transmits reliably, and matches the firmware GroupMessageModule's own "group = N DMs" design.
 	private func sendGroupPacket(
 		payload: GroupMessagePayload,
 		channelIndex: Int32,
 		fromUserNum: Int64,
+		accessoryManager: AccessoryManager
+	) async throws {
+		let selfNum = UInt32(truncatingIfNeeded: fromUserNum)
+		// groupText / groupJoin carry their recipients in `members` → deliver to each as a reliable
+		// unicast. Control packets (ACK, roster, leave) have no member list → broadcast.
+		let isAddressed = (payload.type == .groupText || payload.type == .groupJoin)
+		let targets = isAddressed
+			? payload.members.filter { $0 != selfNum && $0 != UInt32(Constants.maximumNodeNum) }
+			: []
+
+		if targets.isEmpty {
+			try await sendOneGroupPacket(payload: payload, to: Constants.maximumNodeNum,
+										 wantAck: false, channelIndex: channelIndex, accessoryManager: accessoryManager)
+		} else {
+			for target in targets {
+				try await sendOneGroupPacket(payload: payload, to: target,
+											 wantAck: true, channelIndex: channelIndex, accessoryManager: accessoryManager)
+			}
+			Logger.mesh.info("Sent group packet type=\(String(describing: payload.type)) as \(targets.count) unicast(s)")
+		}
+	}
+
+	private func sendOneGroupPacket(
+		payload: GroupMessagePayload,
+		to: UInt32,
+		wantAck: Bool,
+		channelIndex: Int32,
 		accessoryManager: AccessoryManager
 	) async throws {
 		var dataMessage = DataMessage()
@@ -896,16 +931,16 @@ final class GroupMessageService: ObservableObject {
 
 		var meshPacket = MeshPacket()
 		meshPacket.id = UInt32.random(in: UInt32(UInt8.max)..<UInt32.max)
-		meshPacket.to = Constants.maximumNodeNum // Broadcast to all
-		meshPacket.from = UInt32(fromUserNum)
+		meshPacket.to = to
+		// Leave `from` at 0 — the radio stamps the correct origin (it zeroes client-supplied from).
 		meshPacket.channel = UInt32(channelIndex)
 		meshPacket.decoded = dataMessage
-		meshPacket.wantAck = false // Group ACKs are handled at application layer
+		meshPacket.wantAck = wantAck
 
 		var toRadio = ToRadio()
 		toRadio.packet = meshPacket
 
-		try await accessoryManager.send(toRadio, debugDescription: "Group message type=\(payload.type)")
+		try await accessoryManager.send(toRadio, debugDescription: "Group msg type=\(payload.type) to=\(to == Constants.maximumNodeNum ? "all" : String(to))")
 	}
 
 	// MARK: - Helpers

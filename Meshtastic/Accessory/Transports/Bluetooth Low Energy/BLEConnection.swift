@@ -55,6 +55,7 @@ actor BLEConnection: Connection {
 	nonisolated(unsafe) static var debugSubscribeAttempts: Int = 0
 	nonisolated(unsafe) static var debugSubscribeSuccess: Int = 0
 	nonisolated(unsafe) static var debugSubscribeFail: Int = 0
+	nonisolated(unsafe) static var debugWriteLog: [String] = []
 	nonisolated(unsafe) static var debugCharDiscovered: String = ""
 	
 	fileprivate var TORADIO_characteristic: CBCharacteristic?
@@ -531,6 +532,12 @@ actor BLEConnection: Connection {
 		if writeType == .withResponse && binaryData.count > noResponseMax {
 			Logger.transport.info("🛜 [BLE] \(binaryData.count)B > withoutResponse max \(noResponseMax)B — using .withResponse for reliable large write")
 		}
+		// DEBUG instrumentation: capture portnum + size + chosen write type so we can see why
+		// large group packets weren't reaching the radio.
+		let dbgPort = data.packet.decoded.portnum.rawValue
+		let dbgPayload = data.packet.decoded.payload
+		BLEConnection.debugWriteLog.append("port=\(dbgPort) from=\(data.packet.from) to=\(data.packet.to) bytes=\(dbgPayload.count) writeType=\(writeType == .withoutResponse ? "noResp" : "withResp")")
+		if BLEConnection.debugWriteLog.count > 40 { BLEConnection.debugWriteLog.removeFirst() }
 
 		// Retry loop for encryption errors — iOS may still be completing BLE pairing.
 		// PIN entry can take 10-20 seconds (user sees dialog, types 6 digits, taps OK),

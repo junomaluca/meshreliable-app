@@ -512,6 +512,9 @@
     "!%@" : {
 
     },
+    "· %@" : {
+
+    },
     "\"Disconnect Meshtastic\" — disconnect from the connected BLE node." : {
       "comment" : "A description of how to use the \"Disconnect Node\" Siri shortcut.",
       "extractionState" : "stale",
