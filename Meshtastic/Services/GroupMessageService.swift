@@ -690,7 +690,7 @@ final class GroupMessageService: ObservableObject {
 		case .groupLeave:
 			handleGroupLeave(msg, from: packet.from)
 		case .groupRosterRequest:
-			Logger.mesh.info("GroupMessageService: Roster request from \(packet.from.toHex())")
+			handleRosterRequest(msg, from: packet.from, channel: packet.channel)
 		case .groupRosterResponse:
 			handleRosterResponse(msg)
 		}
@@ -832,13 +832,49 @@ final class GroupMessageService: ObservableObject {
 		saveState()
 	}
 
+	/// Answer a roster request for a group we know, so a freshly-joined or rebooted member can
+	/// recover the full membership + name it missed at creation time.
+	private func handleRosterRequest(_ msg: GroupMessagePayload, from: UInt32, channel: UInt32) {
+		guard let info = joinedGroups[msg.groupId] else {
+			Logger.mesh.info("GroupMessageService: roster request for unknown group \(msg.groupId.toHex()) — ignoring")
+			return
+		}
+		guard let myNum = AccessoryManager.shared.activeConnection?.device.num else { return }
+		let chan = channel != 0 ? channel : UInt32(info.channelIndex)
+		let payload = GroupMessagePayload(
+			type: .groupRosterResponse, messageId: generateMessageId(), groupId: msg.groupId,
+			ackMessageId: 0, memberNodeId: UInt32(myNum), sendTime: UInt32(Date().timeIntervalSince1970),
+			rebroadcastCount: 0, members: info.members, roster: info.members, text: info.name)
+		Task {
+			do {
+				try await sendGroupPacket(payload: payload, channelIndex: Int32(chan),
+										  fromUserNum: myNum, accessoryManager: AccessoryManager.shared)
+				Logger.mesh.info("Answered roster request for group \(msg.groupId.toHex()) with \(info.members.count) member(s)")
+			} catch {
+				Logger.mesh.error("Failed to answer roster request: \(error.localizedDescription)")
+			}
+		}
+	}
+
 	private func handleRosterResponse(_ msg: GroupMessagePayload) {
-		if !msg.roster.isEmpty {
-			groupRosters[msg.groupId] = msg.roster
+		let roster = msg.roster.isEmpty ? msg.members : msg.roster
+		if !roster.isEmpty {
+			groupRosters[msg.groupId] = roster
 		}
 		if var info = joinedGroups[msg.groupId] {
-			info.members = msg.roster
+			if !roster.isEmpty { info.members = roster }
+			if !msg.text.isEmpty { info.name = msg.text } // learn/refresh the group name
 			joinedGroups[msg.groupId] = info
+		} else if let myNum = AccessoryManager.shared.activeConnection?.device.num,
+				  roster.contains(UInt32(myNum)) {
+			// We're in the roster but didn't know this group (missed creation) — recover it.
+			let info = GroupInfo(
+				groupId: msg.groupId,
+				name: msg.text.isEmpty ? "Group \(msg.groupId.toHex().suffix(4))" : msg.text,
+				channelIndex: 0, members: roster, createdAt: Date())
+			joinedGroups[msg.groupId] = info
+			if groupMessages[msg.groupId] == nil { groupMessages[msg.groupId] = [] }
+			Logger.mesh.info("Recovered previously-unknown group \(msg.groupId.toHex()) from roster response")
 		}
 		saveState()
 	}
