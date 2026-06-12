@@ -71,7 +71,7 @@ struct Messages: View {
 				NavigationLink(value: MessagesNavigationState.channels()) {
 					Spacer()
 					Label {
-						Text("Channels")
+						Text("Channels (Public Groups)")
 							.badge(unreadChannelMessages)
 							.font(.title2)
 							.padding()

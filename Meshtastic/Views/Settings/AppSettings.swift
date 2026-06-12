@@ -16,7 +16,7 @@ struct AppSettings: View {
 	@State private var isPresentingAppIconSheet = false
 	@State private var purgeStaleNodes: Bool = false
 	@State private var showAutoConnect: Bool = false
-	@AppStorage("purgeStaleNodeDays") private var  purgeStaleNodeDays: Double = 0
+	@AppStorage("purgeStaleNodeDays") private var  purgeStaleNodeDays: Double = 7
 	@AppStorage("environmentEnableWeatherKit") private var  environmentEnableWeatherKit: Bool = true
 	@AppStorage("enableAdministration") private var  enableAdministration: Bool = false
 	@AppStorage("usageDataAndCrashReporting") private var usageDataAndCrashReporting: Bool = true

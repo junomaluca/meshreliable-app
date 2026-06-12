@@ -13,7 +13,8 @@ enum TransportType: String, CaseIterable, Codable {
 	case ble = "BLE"
 	case tcp = "TCP"
 	case serial = "Serial"
-	
+	case mqttVirtual = "MQTT Virtual"
+
 	var icon: Image {
 		switch self {
 		case .ble:
@@ -22,6 +23,8 @@ enum TransportType: String, CaseIterable, Codable {
 			Image(systemName: "network")
 		case .serial:
 			Image(systemName: "cable.connector.horizontal")
+		case .mqttVirtual:
+			Image(systemName: "cloud.fill")
 		}
 	}
 }

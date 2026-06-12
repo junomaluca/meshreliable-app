@@ -322,6 +322,9 @@ struct Connect: View {
 							}
 						}
 
+						// ── Available via MQTT ──
+						MQTTVirtualSection()
+
 						// ── Wi-Fi Provisioning (mPWRD-OS / nymea-networkmanager) ──
 						// Devices broadcasting nymea-networkmanager service are picked
 						// up by the passive scan started in .onAppear below.
@@ -391,7 +394,9 @@ struct Connect: View {
 				ToolbarItem(placement: .topBarTrailing) {
 					ConnectedDevice(
 						deviceConnected: accessoryManager.isConnected,
-						name: accessoryManager.activeConnection?.device.shortName ?? "?",
+						name: accessoryManager.isVirtualMQTT
+							? "MQTT: \(accessoryManager.activeConnection?.device.shortName ?? "?")"
+							: (accessoryManager.activeConnection?.device.shortName ?? "?"),
 						mqttProxyConnected: accessoryManager.mqttProxyConnected,
 						mqttTopic: accessoryManager.mqttManager.topic
 					)

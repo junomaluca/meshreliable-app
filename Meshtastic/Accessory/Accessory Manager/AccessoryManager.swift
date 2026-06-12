@@ -109,9 +109,9 @@ enum AccessoryManagerState: Equatable {
 class AccessoryManager: ObservableObject, MqttClientProxyManagerDelegate {
 	// Singleton Access.  Conditionally compiled
 #if targetEnvironment(macCatalyst)
-	static let shared = AccessoryManager(transports: [BLETransport(), TCPTransport(), SerialTransport()])
+	static let shared = AccessoryManager(transports: [BLETransport(), TCPTransport(), SerialTransport(), MQTTVirtualTransport()])
 #else
-	static let shared = AccessoryManager(transports: [BLETransport(), TCPTransport()])
+	static let shared = AccessoryManager(transports: [BLETransport(), TCPTransport(), MQTTVirtualTransport()])
 #endif
 	
 	// Constants
@@ -138,6 +138,7 @@ class AccessoryManager: ObservableObject, MqttClientProxyManagerDelegate {
 	@Published var isConnected: Bool = false
 	@Published var isConnecting: Bool = false
 	@Published var isInBackground: Bool = false
+	@Published var isVirtualMQTT: Bool = false
 	@Published var firmwareEdition: FirmwareEditions = .vanilla
 
 	var activeConnection: (device: Device, connection: any Connection)?
@@ -225,7 +226,10 @@ class AccessoryManager: ObservableObject, MqttClientProxyManagerDelegate {
 		}
 
 		_ = await MeshPackets.shared.clearStaleNodes(nodeExpireDays: Int(UserDefaults.purgeStaleNodeDays))
-		
+		// MeshReliable: also purge duplicate-name (reflashed) nodes and anything offline 3+ days
+		// (non-favorites), mirroring the firmware NodeDB cleanup.
+		_ = await MeshPackets.shared.purgeStaleAndDuplicateNodes(staleDays: 3)
+
 		try await withTaskCancellationHandler {
 			var toRadio: ToRadio = ToRadio()
 			toRadio.wantConfigID = UInt32(NONCE_ONLY_CONFIG)
@@ -301,6 +305,7 @@ class AccessoryManager: ObservableObject, MqttClientProxyManagerDelegate {
 			self.activeConnection = nil
 		}
 		self.activeDeviceNum = nil
+		self.isVirtualMQTT = false
 		
 		connectionEventTask?.cancel()
 		connectionEventTask = nil

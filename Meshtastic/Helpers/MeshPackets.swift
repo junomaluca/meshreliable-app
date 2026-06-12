@@ -891,7 +891,7 @@ actor MeshPackets {
 											subtitle: "AKA \(telemetry.nodeTelemetry?.user?.shortName ?? "UNK")",
 											content: "Time to charge your radio, there is \(telemetry.batteryLevel?.formatted(.number) ?? Constants.nilValueIndicator)% battery remaining.",
 											target: "nodes",
-											path: "meshtastic:///nodes?nodenum=\(telemetry.nodeTelemetry?.num ?? 0)"
+											path: "meshreliable:///nodes?nodenum=\(telemetry.nodeTelemetry?.num ?? 0)"
 										)
 									]
 									manager.schedule()
@@ -1139,7 +1139,7 @@ actor MeshPackets {
 										subtitle: "AKA \(newMessage.fromUser?.shortName ?? "?")",
 										content: messageText!,
 										target: "messages",
-										path: "meshtastic:///messages?userNum=\(newMessage.fromUser?.num ?? 0)&messageId=\(newMessage.isEmoji ? newMessage.replyID : newMessage.messageId)",
+										path: "meshreliable:///messages?userNum=\(newMessage.fromUser?.num ?? 0)&messageId=\(newMessage.isEmoji ? newMessage.replyID : newMessage.messageId)",
 										messageId: newMessage.messageId,
 										channel: newMessage.channel,
 										userNum: Int64(packet.from),
@@ -1172,7 +1172,7 @@ actor MeshPackets {
 													subtitle: "AKA \(newMessage.fromUser?.shortName ?? "?")",
 													content: messageText!,
 													target: "messages",
-													path: "meshtastic:///messages?channelId=\(newMessage.channel)&messageId=\(newMessage.isEmoji ? newMessage.replyID : newMessage.messageId)",
+													path: "meshreliable:///messages?channelId=\(newMessage.channel)&messageId=\(newMessage.isEmoji ? newMessage.replyID : newMessage.messageId)",
 													messageId: newMessage.messageId,
 													channel: newMessage.channel,
 													userNum: Int64(newMessage.fromUser?.userId ?? "0"),
@@ -1255,10 +1255,10 @@ actor MeshPackets {
 									subtitle: "\(icon) \(waypoint.name ?? "Dropped Pin")",
 									content: "\(waypoint.longDescription ?? "\(latitude), \(longitude)")",
 									target: "map",
-									path: "meshtastic:///map?waypointid=\(waypoint.id)"
+									path: "meshreliable:///map?waypointid=\(waypoint.id)"
 								)
 							]
-							Logger.data.debug("meshtastic:///map?waypointid=\(waypoint.id, privacy: .public)")
+							Logger.data.debug("meshreliable:///map?waypointid=\(waypoint.id, privacy: .public)")
 							manager.schedule()
 						}
 				} else {

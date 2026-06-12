@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Meshtastic</string>
+	<string>MeshReliable</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
@@ -75,6 +75,7 @@
 			<string>org.meshtastic</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
+				<string>meshreliable</string>
 				<string>meshtastic</string>
 			</array>
 		</dict>

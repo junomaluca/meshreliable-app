@@ -117,7 +117,7 @@ final class MeshReliableService: ObservableObject {
 	/// Fast BLE pacing delay for phone-to-device transfers.
 	/// Voice memos are uploaded quickly to the local device via BLE,
 	/// then the firmware handles Codec2 encoding and LoRa transmission.
-	static let bleChunkDelay: Duration = .milliseconds(100)
+	static let bleChunkDelay: Duration = .milliseconds(200)
 
 	/// Active outgoing transfers keyed by transferId.
 	@Published var outgoingTransfers: [UInt32: MediaTransfer] = [:]
@@ -332,6 +332,9 @@ final class MeshReliableService: ObservableObject {
 		outgoingTransfers[transferId] = transfer
 		sendProgress = 0
 
+		// Persist image to database IMMEDIATELY so it shows in the UI right away
+		await persistImage(jpegData, fromUserNum: fromUserNum, toUserNum: toUserNum, channel: channel, transferId: transferId)
+
 		Logger.mesh.info("Starting image transfer \(transferId.toHex()): \(jpegData.count) bytes in \(totalChunks) chunks")
 
 		// Send start header
@@ -393,9 +396,6 @@ final class MeshReliableService: ObservableObject {
 		sendProgress = nil
 		outgoingTransfers.removeValue(forKey: transferId)
 
-		// Persist image to database
-		await persistImage(jpegData, fromUserNum: fromUserNum, toUserNum: toUserNum, channel: channel, transferId: transferId)
-
 		MeshReliableTelemetry.shared.record(.imageSent, details: [
 			"transferId": "\(transferId)",
 			"toUserNum": "\(toUserNum)",
@@ -438,6 +438,9 @@ final class MeshReliableService: ObservableObject {
 
 				let transferId = UInt32.random(in: UInt32(UInt8.max)..<UInt32.max)
 				updatePending(id: pendingId) { $0.transferId = transferId }
+
+				// Persist image to database IMMEDIATELY so it shows in the UI right away
+				await persistImage(compressedData, fromUserNum: fromUserNum, toUserNum: toUserNum, channel: channel, transferId: transferId)
 
 				let chunks = compressedData.chunked(size: Self.maxChunkPayload)
 				let totalChunks = UInt16(chunks.count)
@@ -518,10 +521,7 @@ final class MeshReliableService: ObservableObject {
 				outgoingTransfers.removeValue(forKey: transferId)
 				updatePending(id: pendingId) { $0.isSending = false; $0.progress = 1.0 }
 
-				// Persist image to database so it survives across device connections
-				await persistImage(compressedData, fromUserNum: fromUserNum, toUserNum: toUserNum, channel: channel, transferId: transferId)
-
-				// Remove pending image now that it's persisted — avoids duplicate display
+				// Remove pending image now that transfer is complete
 				pendingImages.removeAll { $0.id == pendingId }
 
 				MeshReliableTelemetry.shared.record(.imageSent, details: [
@@ -636,9 +636,12 @@ final class MeshReliableService: ObservableObject {
 					accessoryManager: accessoryManager
 				)
 
+				// Persist voice memo to database IMMEDIATELY so it shows in the UI right away
+				await persistVoiceMemo(pcmData, duration: duration, fromUserNum: fromUserNum, toUserNum: toUserNum, channel: channel, transferId: transferId)
+
 				Logger.mesh.info("Voice memo BLE upload started: \(pcmData.count) bytes in \(totalChunks) chunks to device \(connectedDeviceNum), dest=\(toUserNum) ch=\(channel)")
 
-				// Send chunks with fast BLE pacing (20ms vs 2s LoRa)
+				// Send chunks with fast BLE pacing
 				for (index, chunk) in chunks.enumerated() {
 					// Yield to text messages if one is pending
 					while textMessagePending {
@@ -685,11 +688,7 @@ final class MeshReliableService: ObservableObject {
 
 				outgoingTransfers.removeValue(forKey: transferId)
 				updatePendingVoiceMemo(id: pendingId) { $0.isSending = false; $0.progress = 1.0 }
-
-				// Persist voice memo to database so it sorts chronologically with other messages
-				await persistVoiceMemo(pcmData, duration: duration, fromUserNum: fromUserNum, toUserNum: toUserNum, channel: channel, transferId: transferId)
-
-				// Remove pending voice memo now that it's persisted — avoids duplicate display
+				// Remove pending voice memo now that transfer is complete
 				pendingVoiceMemos.removeAll { $0.id == pendingId }
 
 				MeshReliableTelemetry.shared.record(.voiceMemoSent, details: [

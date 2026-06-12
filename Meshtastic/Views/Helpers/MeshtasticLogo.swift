@@ -13,7 +13,7 @@ struct MeshtasticLogo: View {
 	var body: some View {
 		#if targetEnvironment(macCatalyst)
 			VStack {
-				Link(destination: URL(string: "meshtastic:///settings/about")!) {
+				Link(destination: URL(string: "meshreliable:///settings/about")!) {
 					if #available(iOS 26.0, macOS 26.0, *) {
 						Image(colorScheme == .dark ? "logo-white" : "logo-black")
 							.resizable()
@@ -32,7 +32,7 @@ struct MeshtasticLogo: View {
 		#else
 		if #available(iOS 26.0, macOS 26.0, *) {
 			VStack {
-				Link(destination: URL(string: "meshtastic:///settings/about")!) {
+				Link(destination: URL(string: "meshreliable:///settings/about")!) {
 					Image(colorScheme == .dark ? "logo-white" : "logo-black")
 						.resizable()
 						.scaledToFit()
@@ -40,7 +40,7 @@ struct MeshtasticLogo: View {
 			}
 		} else {
 			VStack {
-				Link(destination: URL(string: "meshtastic:///settings/about")!) {
+				Link(destination: URL(string: "meshreliable:///settings/about")!) {
 					Image(colorScheme == .dark ? "logo-white" : "logo-black")
 						.resizable()
 						.scaledToFit()

@@ -236,37 +236,19 @@ private struct FilteredNodeList: View {
 	}
 
 	private var filteredNodes: [NodeInfoEntity] {
-		let myLocation = LocationsHandler.shared.locationsArray.last
-		let hasValidLocation = myLocation != nil
-			&& myLocation!.coordinate.latitude != LocationsHandler.DefaultLocation.latitude
-			&& myLocation!.coordinate.longitude != LocationsHandler.DefaultLocation.longitude
-		let myCoord = hasValidLocation ? myLocation! : nil
-
 		return allNodes
 			.filter { filters.matchesPostPredicate($0) }
 			.sorted {
 				if $0.ignored != $1.ignored { return !$0.ignored && $1.ignored }
 				if $0.favorite != $1.favorite { return $0.favorite && !$1.favorite }
-				// Sort by distance if we have a valid location, then fall back to lastHeard
-				if let myCoord {
-					let dist0 = distanceToNode($0, from: myCoord)
-					let dist1 = distanceToNode($1, from: myCoord)
-					if dist0 != dist1 { return dist0 < dist1 }
-				}
 				return ($0.lastHeard ?? .distantPast) > ($1.lastHeard ?? .distantPast)
 			}
 	}
 
-	private func distanceToNode(_ node: NodeInfoEntity, from location: CLLocation) -> Double {
-		guard let position = node.latestPosition,
-			  let coord = position.nodeCoordinate else {
-			return Double.greatestFiniteMagnitude
-		}
-		return location.distance(from: CLLocation(latitude: coord.latitude, longitude: coord.longitude))
-	}
-
 	// The body of the view
 	var body: some View {
+		// Cache connected node entity once per render (avoids N FetchDescriptor queries)
+		let cachedConnectedNode = connectedNode
 		// If the connected node passes filters, always show it first
 		let nodesWithConnectedFirst = filteredNodes.filter { $0.num == accessoryManager.activeDeviceNum } + filteredNodes.filter { $0.num != accessoryManager.activeDeviceNum }
 		var seenNodeNums = Set<Int64>()
@@ -283,14 +265,15 @@ private struct FilteredNodeList: View {
 					NodeListItem(
 						node: node,
 						isDirectlyConnected: node.num == accessoryManager.activeDeviceNum,
-						connectedNode: accessoryManager.activeConnection?.device.num ?? -1
+						connectedNode: accessoryManager.activeConnection?.device.num ?? -1,
+						connectedNodeEntity: cachedConnectedNode
 					)
 				}
 			}
 			.contextMenu {
 				contextMenuActions(
 					node: node,
-					connectedNode: connectedNode
+					connectedNode: cachedConnectedNode
 				)
 			}
 		}
@@ -309,7 +292,7 @@ private struct FilteredNodeList: View {
 			if connectedNode.num != node.num {
 				if !(node.user?.unmessagable ?? true) {
 					Button(action: {
-						if let url = URL(string: "meshtastic:///messages?userNum=\(node.num)") {
+						if let url = URL(string: "meshreliable:///messages?userNum=\(node.num)") {
 							UIApplication.shared.open(url)
 						}
 					}) {

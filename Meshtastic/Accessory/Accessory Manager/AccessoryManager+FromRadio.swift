@@ -23,7 +23,7 @@ extension AccessoryManager {
 
 	func handleClientNotification(_ clientNotification: ClientNotification) {
 		Logger.services.info("handleClientNotification: \(clientNotification.debugDescription)")
-		var path = "meshtastic:///settings/debugLogs"
+		var path = "meshreliable:///settings/debugLogs"
 		if clientNotification.hasReplyID {
 			/// Set Sent bool on TraceRouteEntity to false if we got rate limited
 			if clientNotification.message.starts(with: "TraceRoute") {
@@ -43,7 +43,7 @@ extension AccessoryManager {
 
 			switch clientNotification.payloadVariant {
 			case .lowEntropyKey, .duplicatedPublicKey:
-				path = "meshtastic:///settings/security"
+				path = "meshreliable:///settings/security"
 			default:
 				break
 			}
@@ -126,16 +126,31 @@ extension AccessoryManager {
 			self.firstDatabaseNodeInfoContinuation = nil
 			continuation.resume()
 		}
-		
+
 		guard nodeInfo.num > 0 else {
 			Logger.services.error("NodeInfo packet with a zero nodeNum")
 			return
 		}
 
-		// Check if we're in database retrieval mode to defer saves for performance
-		// Commented out: No need to defer save when nodeInfoPacket is now happening off the main thread
-		// let isRetrievingDatabase = if case .retrievingDatabase = self.state { true } else { false }
-		
+		// During database retrieval, skip stale non-favorite nodes to speed up loading
+		// and prevent crashes from too many nodes. Only store favorites and nodes
+		// active in the last 24 hours.
+		if case .retrievingDatabase = self.state {
+			let isFavorite = nodeInfo.isFavorite
+			let isConnectedDevice = nodeInfo.num == UInt32(activeConnection?.device.num ?? 0)
+			if !isFavorite && !isConnectedDevice {
+				let lastHeardTime = TimeInterval(nodeInfo.lastHeard)
+				let twentyFourHoursAgo = Date().timeIntervalSince1970 - 86400
+				if lastHeardTime < twentyFourHoursAgo {
+					// Bump node count but don't save to database
+					if case let .retrievingDatabase(nodeCount: nodeCount) = self.state {
+						updateState(.retrievingDatabase(nodeCount: nodeCount+1))
+					}
+					return
+				}
+			}
+		}
+
 		// TODO: nodeInfoPacket's channel: parameter is not used
 		// deferSave hard coded: No need to defer save when nodeInfoPacket is now happening off the main thread
 		if let nodeInfoId = await MeshPackets.shared.nodeInfoPacket(nodeInfo: nodeInfo, channel: 0, deferSave: false),
@@ -535,7 +550,7 @@ extension AccessoryManager {
 						subtitle: "TR received back from \(destinationHop.name ?? "unknown")",
 						content: "Hops from: \(tr.hopsTowards), Hops back: \(tr.hopsBack)\n\(tr.routeText ?? "Unknown".localized)\n\(tr.routeBackText ?? "Unknown".localized)",
 						target: "nodes",
-						path: "meshtastic:///nodes?nodenum=\(tr.node?.num ?? 0)"
+						path: "meshreliable:///nodes?nodenum=\(tr.node?.num ?? 0)"
 					)
 				]
 				manager.schedule()

@@ -70,6 +70,7 @@ struct UserList: View {
 
 private struct FilteredUserList: View {
 	@EnvironmentObject var accessoryManager: AccessoryManager
+	@EnvironmentObject var appState: AppState
 	@Environment(\.modelContext) private var context
 
 	@Query(sort: [SortDescriptor(\UserEntity.lastMessage, order: .reverse),
@@ -340,6 +341,14 @@ private struct FilteredUserList: View {
 		}
 		.onChange(of: allUsers.count) {
 			messageInfoNeedsRefresh = true
+			refreshMessageInfo()
+		}
+		.onChange(of: appState.unreadDirectMessages) {
+			// Refresh cached unread counts when messages are marked as read
+			refreshMessageInfo()
+		}
+		.onAppear {
+			// Refresh when returning from a conversation
 			refreshMessageInfo()
 		}
 	}

@@ -185,7 +185,7 @@ extension UserDefaults {
 	@UserDefault(.autoconnectOnDiscovery, defaultValue: true)
 	static var autoconnectOnDiscovery: Bool
 
-	@UserDefault(.purgeStaleNodeDays, defaultValue: 0)
+	@UserDefault(.purgeStaleNodeDays, defaultValue: 7)
 	static var purgeStaleNodeDays: Double
 
 	@UserDefault(.testIntEnum, defaultValue: .one)

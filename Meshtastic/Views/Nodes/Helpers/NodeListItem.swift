@@ -100,6 +100,7 @@ struct NodeListItem: View {
 	@Bindable var node: NodeInfoEntity
 	var isDirectlyConnected: Bool
 	var connectedNode: Int64
+	var connectedNodeEntity: NodeInfoEntity?
 	var modemPreset: ModemPresets = ModemPresets(rawValue: UserDefaults.modemPreset) ?? ModemPresets.longFast
 	
 	var userKeyStatus: (String, Color) {
@@ -230,7 +231,7 @@ struct NodeListItem: View {
 					if !isDirectlyConnected, node.loRaConfig?.regionCode ?? 0 != 0 {
 						BandBadge(
 							node: node,
-							connectedNode: getNodeInfo(id: connectedNode, context: nodeContext)
+							connectedNode: connectedNodeEntity
 						)
 					}
 					if cachedHasLogs {

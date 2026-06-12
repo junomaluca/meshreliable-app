@@ -300,7 +300,8 @@ extension AccessoryManager {
 					if toUserNum > 0 {
 						newMessage.toUser = fetchedUsers.first(where: { $0.num == toUserNum })
 						newMessage.toUser?.lastMessage = Date()
-						if newMessage.toUser?.pkiEncrypted ?? false {
+						let hasValidPKI = (newMessage.toUser?.pkiEncrypted ?? false) && (newMessage.toUser?.publicKey?.count ?? 0) == 32
+						if hasValidPKI {
 							newMessage.publicKey = newMessage.toUser?.publicKey
 							newMessage.pkiEncrypted = true
 						}
@@ -326,9 +327,9 @@ extension AccessoryManager {
 					dataMessage.portnum = dataType
 
 					var meshPacket = MeshPacket()
-					if newMessage.toUser?.pkiEncrypted ?? false {
+					if newMessage.pkiEncrypted, let pubKey = newMessage.publicKey, pubKey.count == 32 {
 						meshPacket.pkiEncrypted = true
-						meshPacket.publicKey = newMessage.toUser?.publicKey ?? Data()
+						meshPacket.publicKey = pubKey
 						// Send a contact to the phone every time we send a dm so that any nodes that have rolled out of the db are there and we don't get a PKI Failed error
 						Task { @MainActor in
 							let am = AccessoryManager.shared
@@ -370,10 +371,8 @@ extension AccessoryManager {
 					var toRadio: ToRadio!
 					toRadio = ToRadio()
 					toRadio.packet = meshPacket
-					Task {
-						let logString = String.localizedStringWithFormat("Sent message %@ from %@ to %@".localized, String(newMessage.messageId), fromUserNum.toHex(), toUserNum.toHex())
-						try await send(toRadio, debugDescription: logString)
-					}
+					let logString = String.localizedStringWithFormat("Sent message %@ from %@ to %@".localized, String(newMessage.messageId), fromUserNum.toHex(), toUserNum.toHex())
+					try await send(toRadio, debugDescription: logString)
 					do {
 						try context.save()
 						Logger.data.info("💾 Saved a new sent message from \(self.activeDeviceNum?.toHex() ?? "0", privacy: .public) to \(toUserNum.toHex(), privacy: .public)")
@@ -397,6 +396,7 @@ extension AccessoryManager {
 				}
 			} catch {
 				Logger.data.error("💥 Send message failure \(self.activeDeviceNum?.toHex() ?? "0", privacy: .public) to \(toUserNum.toHex(), privacy: .public)")
+				throw error
 			}
 
 	}

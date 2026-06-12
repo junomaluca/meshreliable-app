@@ -81,7 +81,9 @@ actor TCPConnection: Connection {
 						if let fromRadio = try? FromRadio(serializedBytes: payload) {
 							await connectionStreamContinuation?.yield(.data(fromRadio))
 						} else {
-							try await self.disconnect(withError: AccessoryError.disconnected("Network connection dropped"), shouldReconnect: true)
+							// Protobuf parse failure — likely a garbled frame, not a network error.
+							// Just skip this frame and resync on the next magic bytes.
+							Logger.transport.warning("🌐 [TCP] startReader: Failed to parse FromRadio (\(payload.count) bytes), skipping frame")
 						}
 					} else {
 						Logger.transport.debug("🌐 [TCP] startReader: EOF while waiting for length")
@@ -193,7 +195,13 @@ actor TCPConnection: Connection {
 	}
 
 	func connect() async throws -> AsyncStream<ConnectionEvent> {
-		let newConnection = NWConnection(host: nwHost, port: nwPort, using: .tcp)
+		let tcpOptions = NWProtocolTCP.Options()
+		tcpOptions.enableKeepalive = true
+		tcpOptions.keepaliveIdle = 15
+		tcpOptions.keepaliveInterval = 5
+		tcpOptions.keepaliveCount = 3
+		let params = NWParameters(tls: nil, tcp: tcpOptions)
+		let newConnection = NWConnection(host: nwHost, port: nwPort, using: params)
 		self.connection = newConnection
 			
 		try await withTaskCancellationHandler {

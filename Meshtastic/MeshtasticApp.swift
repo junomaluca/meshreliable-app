@@ -189,7 +189,8 @@ struct MeshtasticAppleApp: App {
 					} else if url.absoluteString.lowercased().contains("meshtastic.org/e/") {
 						// **Consolidated Call for Open URL**
 						handleChannelLinkURL(url, fromActivity: false)
-					} else if url.absoluteString.lowercased().contains("meshtastic:///") {
+					} else if url.absoluteString.lowercased().contains("meshreliable:///") ||
+								url.absoluteString.lowercased().contains("meshtastic:///") {
 						appState.router.route(url: url)
 					}
 				})

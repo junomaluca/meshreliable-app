@@ -8,6 +8,7 @@
 //
 
 import Foundation
+import MeshtasticProtobufs
 import Network
 import OSLog
 import SwiftData
@@ -209,6 +210,9 @@ final class DebugHTTPServer: @unchecked Sendable {
 			return handleClearTransfers()
 		case ("POST", "/action/ble-reconnect"):
 			return handleBleReconnect()
+		case ("POST", "/action/tcp-connect"):
+			let body = extractBody(from: request)
+			return handleTcpConnect(body: body)
 		case ("POST", "/action/create-group"):
 			let body = extractBody(from: request)
 			return handleCreateGroup(body: body)
@@ -320,15 +324,35 @@ final class DebugHTTPServer: @unchecked Sendable {
 			  let text = json["text"] as? String else {
 			return jsonError("Invalid body — need {\"to\": nodeNum, \"text\": \"...\"}")
 		}
+		let noPki = json["noPki"] as? Bool ?? false
 
 		Task { @MainActor in
 			let manager = AccessoryManager.shared
 			guard let deviceNum = manager.activeDeviceNum else { return }
-			try? await manager.sendMessage(message: text, toUserNum: Int64(to), channel: 0, isEmoji: false, replyID: 0)
+			if noPki {
+				// Send as channel-encrypted DM (bypass PKI)
+				let payloadData = text.data(using: .utf8)!
+				var dataMessage = DataMessage()
+				dataMessage.payload = payloadData
+				dataMessage.portnum = .textMessageApp
+				var meshPacket = MeshPacket()
+				meshPacket.id = UInt32.random(in: UInt32(UInt8.max)..<UInt32.max)
+				meshPacket.to = UInt32(to)
+				meshPacket.from = UInt32(deviceNum)
+				meshPacket.channel = 0
+				meshPacket.decoded = dataMessage
+				meshPacket.wantAck = true
+				var toRadio = ToRadio()
+				toRadio.packet = meshPacket
+				try? await manager.activeConnection?.connection.send(toRadio)
+			} else {
+				try? await manager.sendMessage(message: text, toUserNum: Int64(to), channel: 0, isEmoji: false, replyID: 0)
+			}
 			MeshReliableTelemetry.shared.record(.messageSent, details: [
 				"to": "\(to)",
 				"text": text,
-				"from": "\(deviceNum)"
+				"from": "\(deviceNum)",
+				"noPki": "\(noPki)"
 			])
 		}
 
@@ -712,6 +736,10 @@ final class DebugHTTPServer: @unchecked Sendable {
 						entry["longName"] = user.longName
 						entry["shortName"] = user.shortName
 						entry["userId"] = user.userId
+						entry["pkiEncrypted"] = user.pkiEncrypted
+						if let pubKey = user.publicKey {
+							entry["publicKeyLen"] = pubKey.count
+						}
 					}
 					if let bleName = node.bleName {
 						entry["bleName"] = bleName
@@ -812,7 +840,7 @@ final class DebugHTTPServer: @unchecked Sendable {
 				return
 			}
 			let router = appState.router
-			resultInfo = "navigating to \(tab), router=\(type(of: router))"
+			resultInfo = "navigated to \(tab)"
 
 			switch tab {
 			case "messages":
@@ -837,11 +865,14 @@ final class DebugHTTPServer: @unchecked Sendable {
 			default:
 				resultInfo = "unknown tab: \(tab)"
 			}
-			// Force SwiftUI to re-render by notifying AppState observers
 			appState.objectWillChange.send()
 			semaphore.signal()
 		}
-		semaphore.wait()
+		// Timeout after 3 seconds to avoid deadlock when main thread is busy
+		let result = semaphore.wait(timeout: .now() + 3)
+		if result == .timedOut {
+			resultInfo = "navigation requested (main thread busy)"
+		}
 		let escaped = resultInfo.replacingOccurrences(of: "\"", with: "\\\"")
 		return "{\"ok\":true,\"info\":\"\(escaped)\"}"
 	}
@@ -862,6 +893,48 @@ final class DebugHTTPServer: @unchecked Sendable {
 		}
 		semaphore.wait()
 		return "{\"ok\":true,\"cleared\":\(cleared)}"
+	}
+
+	private func handleTcpConnect(body: String) -> String {
+		let host: String
+		if let data = body.data(using: .utf8),
+		   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+		   let h = json["host"] as? String {
+			host = h
+		} else {
+			host = "192.168.1.117:4403"
+		}
+
+		let semaphore = DispatchSemaphore(value: 0)
+		var resultInfo = ""
+		DispatchQueue.main.async {
+			Task {
+				let manager = AccessoryManager.shared
+				// Find TCP transport
+				guard let tcpTransport = manager.transports.first(where: { $0.type == .tcp }) else {
+					resultInfo = "TCP transport not found"
+					semaphore.signal()
+					return
+				}
+				guard let device = tcpTransport.device(forManualConnection: host) else {
+					resultInfo = "Invalid host: \(host)"
+					semaphore.signal()
+					return
+				}
+				do {
+					try await manager.disconnect()
+					try? await Task.sleep(nanoseconds: 500_000_000)
+					try await manager.connect(to: device)
+					resultInfo = "connected to \(host)"
+				} catch {
+					resultInfo = "error: \(error.localizedDescription)"
+				}
+				semaphore.signal()
+			}
+		}
+		semaphore.wait()
+		let escaped = resultInfo.replacingOccurrences(of: "\"", with: "\\\"")
+		return "{\"ok\":true,\"info\":\"\(escaped)\"}"
 	}
 
 	private func handleBleReconnect() -> String {

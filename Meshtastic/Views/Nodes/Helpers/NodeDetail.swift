@@ -519,7 +519,7 @@ struct NodeDetail: View {
 				if connectedNode.num != node.num {
 					if !(node.user?.unmessagable ?? true) {
 						Button(action: {
-							if let url = URL(string: "meshtastic:///messages?userNum=\(node.num)") {
+							if let url = URL(string: "meshreliable:///messages?userNum=\(node.num)") {
 								UIApplication.shared.open(url)
 							}
 						}) {

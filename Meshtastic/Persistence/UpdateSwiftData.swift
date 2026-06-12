@@ -51,7 +51,61 @@ extension MeshPackets {
 		}
 		return false
 	}
-	
+
+	/// Mirrors the firmware-side NodeDB cleanup (see `NodeDB.cpp` `cleanupMeshDB`):
+	/// 1. Removes DUPLICATE long-name nodes, keeping only the most-recently-heard one — even if an
+	///    older duplicate is a favorite. A reflashed device gets a brand-new node number but reuses
+	///    the same long name, so the old identity would otherwise linger in the list forever.
+	/// 2. Removes nodes that have been offline for `staleDays`+ days UNLESS they are a favorite.
+	/// Never removes the connected (self) node. Only persists when something was actually deleted.
+	@discardableResult
+	public func purgeStaleAndDuplicateNodes(staleDays: Int = 3) -> Int {
+		let selfNum = Int64(UserDefaults.preferredPeripheralNum)
+		var nodesToDelete: [NodeInfoEntity] = []
+		do {
+			let allNodes = try modelContext.fetch(FetchDescriptor<NodeInfoEntity>())
+
+			// Pass 1 — duplicate long-name dedup: keep the most-recently-heard node per name.
+			let named = allNodes.filter { node in
+				guard let longName = node.user?.longName else { return false }
+				return !longName.isEmpty
+			}
+			let groups = Dictionary(grouping: named, by: { $0.user!.longName! })
+			for (_, group) in groups where group.count > 1 {
+				let newestFirst = group.sorted { ($0.lastHeard ?? .distantPast) > ($1.lastHeard ?? .distantPast) }
+				for stale in newestFirst.dropFirst() where stale.num != selfNum {
+					nodesToDelete.append(stale)
+				}
+			}
+
+			// Pass 2 — stale offline non-favorites (>= staleDays old).
+			let expireDate = Date(timeIntervalSinceNow: TimeInterval(-staleDays * 86400))
+			for node in allNodes where node.num != selfNum && node.favorite == false {
+				guard let lastHeard = node.lastHeard else { continue }
+				if lastHeard < expireDate {
+					nodesToDelete.append(node)
+				}
+			}
+
+			// A node may match both passes — de-dup the delete list by node number.
+			var deleted = 0
+			var seenNums = Set<Int64>()
+			for node in nodesToDelete where seenNums.insert(node.num).inserted {
+				if let user = node.user { modelContext.delete(user) }
+				modelContext.delete(node)
+				deleted += 1
+			}
+			if deleted > 0 {
+				try modelContext.save()
+				Logger.data.info("💾 [NodeInfoEntity] Purged \(deleted) stale/duplicate nodes")
+			}
+			return deleted
+		} catch {
+			Logger.data.error("💥 [NodeInfoEntity] Error purging stale/duplicate nodes")
+		}
+		return 0
+	}
+
 	func clearPax(destNum: Int64) -> Bool {
 		let num = destNum
 		var descriptor = FetchDescriptor<NodeInfoEntity>(
@@ -373,7 +427,7 @@ extension MeshPackets {
 										subtitle: "\(newUser.longName ?? "Unknown".localized)",
 										content: "New Node has been discovered".localized,
 										target: "nodes",
-										path: "meshtastic:///nodes?nodenum=\(newUser.num)"
+										path: "meshreliable:///nodes?nodenum=\(newUser.num)"
 									)
 								]
 								manager.schedule()
@@ -412,7 +466,11 @@ extension MeshPackets {
 				
 				savePendingChanges()
 				Logger.data.info("💾 [NodeInfo] Saved a NodeInfo for node number: \(packet.from.toHex(), privacy: .public)")
-				
+
+				// A brand-new node may be the same physical device after a reflash (new node number,
+				// same long name). Dedup immediately so the stale old identity does not linger.
+				purgeStaleAndDuplicateNodes()
+
 			} else {
 				// Update an existing node
 				if packet.to == Constants.maximumNodeNum || packet.to == UserDefaults.preferredPeripheralNum {

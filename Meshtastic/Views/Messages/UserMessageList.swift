@@ -283,7 +283,7 @@ struct UserMessageList: View {
 								.foregroundStyle(.secondary)
 								.font(.caption2)
 						}
-						Link(destination: URL(string: "meshtastic:///nodes?nodenum=\(user.num)")!) {
+						Link(destination: URL(string: "meshreliable:///nodes?nodenum=\(user.num)")!) {
 							Text("Details...")
 								.font(.caption2)
 								.offset(y: -15)

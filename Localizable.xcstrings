@@ -762,6 +762,9 @@
         }
       }
     },
+    "(%@)" : {
+
+    },
     "(Re)define PIN_GPS_EN for your board." : {
       "localizations" : {
         "da" : {
@@ -12940,6 +12943,9 @@
           }
         }
       }
+    },
+    "Available via MQTT" : {
+
     },
     "Avg Channel Utilization" : {
       "comment" : "A label for the average channel utilization percentage.",
@@ -53117,6 +53123,9 @@
       }
     },
     "MQTT Proxy" : {
+
+    },
+    "MQTT Virtual" : {
 
     },
     "mTLS" : {

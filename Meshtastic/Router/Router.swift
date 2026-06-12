@@ -103,7 +103,11 @@ class Router: ObservableObject {
 	}
 
 	func route(url: URL) {
-		guard url.scheme == "meshtastic" else {
+		// MeshReliable uses its OWN url scheme (meshreliable://) for in-app deep links so iOS opens
+		// MeshReliable, not the official Meshtastic app, when both are installed (they would
+		// otherwise both claim the shared "meshtastic" scheme). "meshtastic" still accepted for
+		// backward/external compatibility.
+		guard url.scheme == "meshreliable" || url.scheme == "meshtastic" else {
 			Logger.services.error("🛣 [App] Received routing URL \(url, privacy: .public) with invalid scheme. Ignoring route.")
 			return
 		}
