@@ -544,15 +544,7 @@ class AccessoryManager: ObservableObject, MqttClientProxyManagerDelegate {
 		}
 	}
 
-	nonisolated(unsafe) static var firmwareLogBuffer: [String] = []
-
 	func didReceiveLog(message: String) {
-		// DEBUG: capture firmware log lines so we can inspect what the radio does (e.g. group msg TX).
-		let lower = message.lowercased()
-		if lower.contains("group") || lower.contains("258") || lower.contains("send") || lower.contains("tx ") || lower.contains("flood") || lower.contains("relay") || lower.contains("dropp") || lower.contains("filter") {
-			AccessoryManager.firmwareLogBuffer.append(message)
-			if AccessoryManager.firmwareLogBuffer.count > 150 { AccessoryManager.firmwareLogBuffer.removeFirst() }
-		}
 		var log = message
 		/// Debug Log Level
 		if log.starts(with: "DEBUG |") {
