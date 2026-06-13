@@ -451,34 +451,25 @@ struct GroupMessageRow: View {
 
 	@ViewBuilder
 	private func ackStatusView(_ status: GroupAckStatus) -> some View {
-		HStack(spacing: 2) {
+		HStack(spacing: 3) {
 			if status.allAcked {
-				// All members ACKed: double blue checkmarks
-				Image(systemName: "checkmark")
-					.font(.system(size: 11, weight: .bold))
-					.foregroundColor(.blue)
-				Image(systemName: "checkmark")
-					.font(.system(size: 11, weight: .bold))
-					.foregroundColor(.blue)
-					.offset(x: -6)
-			} else if status.ackedBy.isEmpty {
-				// Sent, no ACKs yet: single gray checkmark
-				Image(systemName: "checkmark")
-					.font(.system(size: 11, weight: .medium))
-					.foregroundColor(.secondary)
-			} else {
-				// Partial ACKs: double gray checkmarks + count
-				Image(systemName: "checkmark")
-					.font(.system(size: 11, weight: .medium))
-					.foregroundColor(.secondary)
-				Image(systemName: "checkmark")
-					.font(.system(size: 11, weight: .medium))
-					.foregroundColor(.secondary)
-					.offset(x: -6)
+				// Delivered to every member — same symbol a DM shows when ACKed.
+				Image(systemName: "checkmark.circle.fill")
+					.font(.system(size: 12))
+					.foregroundColor(.green)
+			} else if !status.ackedBy.isEmpty {
+				// Delivered to some members — DM ACK symbol + how many.
+				Image(systemName: "checkmark.circle.fill")
+					.font(.system(size: 12))
+					.foregroundColor(.green)
 				Text("\(status.ackedBy.count)/\(status.members.count)")
 					.font(.caption2)
 					.foregroundColor(.secondary)
-					.offset(x: -4)
+			} else {
+				// Sent, waiting for delivery — same as a DM awaiting its ACK.
+				Image(systemName: "antenna.radiowaves.left.and.right")
+					.font(.system(size: 11))
+					.foregroundColor(.secondary)
 			}
 		}
 	}
