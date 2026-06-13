@@ -453,23 +453,21 @@ struct GroupMessageRow: View {
 	private func ackStatusView(_ status: GroupAckStatus) -> some View {
 		HStack(spacing: 3) {
 			if status.allAcked {
-				// Delivered to every member — same symbol a DM shows when ACKed.
+				// Checkmark ONLY when every member has ACKed — same symbol as a delivered DM.
 				Image(systemName: "checkmark.circle.fill")
 					.font(.system(size: 12))
 					.foregroundColor(.green)
-			} else if !status.ackedBy.isEmpty {
-				// Delivered to some members — DM ACK symbol + how many.
-				Image(systemName: "checkmark.circle.fill")
-					.font(.system(size: 12))
-					.foregroundColor(.green)
-				Text("\(status.ackedBy.count)/\(status.members.count)")
-					.font(.caption2)
-					.foregroundColor(.secondary)
 			} else {
-				// Sent, waiting for delivery — same as a DM awaiting its ACK.
+				// Still in flight (not all members yet) — DM 'awaiting ACK' antenna, plus how
+				// many have it so far. No checkmark until everyone has received it.
 				Image(systemName: "antenna.radiowaves.left.and.right")
 					.font(.system(size: 11))
 					.foregroundColor(.secondary)
+				if !status.ackedBy.isEmpty {
+					Text("\(status.ackedBy.count)/\(status.members.count)")
+						.font(.caption2)
+						.foregroundColor(.secondary)
+				}
 			}
 		}
 	}
