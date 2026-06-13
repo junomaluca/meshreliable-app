@@ -20,6 +20,7 @@ struct CreateGroupSheet: View {
 	@State private var isCreating = false
 	@State private var errorMessage: String?
 	@State private var showError = false
+	@State private var searchText: String = ""
 
 	@Query(sort: \NodeInfoEntity.lastHeard, order: .reverse) private var nodes: [NodeInfoEntity]
 
@@ -57,13 +58,25 @@ struct CreateGroupSheet: View {
 
 	/// Candidate members, ranked nearest-first by geographic distance to the connected node.
 	/// Nodes with no known position sort last; ties keep the lastHeard order (stable).
+	/// Case-insensitive match on a node's long name, short name, hex id, or decimal number.
+	private func matchesSearch(_ node: NodeInfoEntity) -> Bool {
+		let q = searchText.trimmingCharacters(in: .whitespaces).lowercased()
+		guard !q.isEmpty else { return true }
+		let name = (node.user?.longName ?? "").lowercased()
+		let short = (node.user?.shortName ?? "").lowercased()
+		let hex = node.num.toHex().lowercased()
+		let dec = String(node.num)
+		return name.contains(q) || short.contains(q) || hex.contains(q) || dec.contains(q)
+	}
+
 	private var availableNodes: [NodeInfoEntity] {
 		let myNum = connectedNodeNum
 		var seen = Set<Int64>()
 		let filtered = nodes.filter { node in
 			guard node.user != nil else { return false }
 			if let myNum, node.num == myNum { return false }
-			return seen.insert(node.num).inserted
+			guard seen.insert(node.num).inserted else { return false }
+			return matchesSearch(node)
 		}
 		guard let ref = referenceLocation else { return filtered }
 		return filtered.enumerated().sorted { lhs, rhs in
@@ -130,6 +143,9 @@ struct CreateGroupSheet: View {
 			}
 			.navigationTitle("New Group")
 			.navigationBarTitleDisplayMode(.inline)
+			.searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search by name or number")
+			.autocorrectionDisabled()
+			.textInputAutocapitalization(.never)
 			.toolbar {
 				ToolbarItem(placement: .cancellationAction) {
 					Button("Cancel") { dismiss() }
