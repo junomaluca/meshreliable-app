@@ -292,7 +292,9 @@ struct GroupConversationView: View {
 		HStack {
 			Spacer()
 			AlertButton(action: {
-				typingMessage += "\u{7}"
+				// Match the DM alert bell exactly (visible text + BEL char), not a bare \u{7}
+				// which sent a blank-looking message.
+				typingMessage += "\u{1F514} Alert Bell Character! \u{7}"
 				sendMessage()
 			}, compact: true)
 			Spacer()

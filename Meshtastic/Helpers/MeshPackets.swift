@@ -725,7 +725,16 @@ actor MeshPackets {
 			let routingErrorString = routingError?.display ?? "Unknown".localized
 			let logString = String.localizedStringWithFormat("Routing received for RequestID: %@ Ack Status: %@".localized, String(packet.decoded.requestID), routingErrorString)
 			Logger.mesh.info("🕸️ \(logString, privacy: .public)")
-			
+
+			// Feed group-message delivery tracking: a routing ACK for a group unicast we sent
+			// confirms that specific member received it (reliable per-member delivery).
+			let groupReqId = UInt32(truncatingIfNeeded: packet.decoded.requestID)
+			let groupAckFrom = packet.from
+			let groupAckOk = routingMessage.errorReason == Routing.Error.none
+			Task { @MainActor in
+				GroupMessageService.shared.handleRoutingAck(packetId: groupReqId, from: groupAckFrom, success: groupAckOk)
+			}
+
 			let requestID = Int64(packet.decoded.requestID)
 			let fetchDescriptor = FetchDescriptor<MessageEntity>(predicate: #Predicate { $0.messageId == requestID })
 			

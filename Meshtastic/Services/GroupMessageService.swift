@@ -233,6 +233,11 @@ final class GroupMessageService: ObservableObject {
 
 	/// Joins awaiting confirmation, keyed by the join's messageId.
 	private var pendingJoins: [UInt32: PendingJoin] = [:]
+
+	/// Group-text/join UNICASTS awaiting a transport routing ACK, keyed by the mesh packet id.
+	/// The routing ACK (more reliable than the app-layer GROUP_ACK over weak return links) confirms
+	/// a specific member received the message → per-member delivery in the UI.
+	private var pendingGroupUnicasts: [UInt32: (groupId: UInt32, messageId: UInt32, member: UInt32)] = [:]
 	/// Single driver task that walks `pendingJoins` until it drains.
 	private var retransmitTask: Task<Void, Never>?
 
@@ -757,20 +762,32 @@ final class GroupMessageService: ObservableObject {
 	}
 
 	private func handleGroupAck(_ msg: GroupMessagePayload) {
-		guard var tracker = ackTrackers[msg.ackMessageId] else { return }
-		if !tracker.ackedBy.contains(msg.memberNodeId) {
-			tracker.ackedBy.append(msg.memberNodeId)
-			ackTrackers[msg.ackMessageId] = tracker
+		// App-layer GROUP_ACK (port 258) path.
+		markMemberAcked(messageId: msg.ackMessageId, groupId: msg.groupId, member: msg.memberNodeId, via: "group-ack")
+	}
 
-			// Update the message entry's ack status
-			if var messages = groupMessages[msg.groupId] {
-				if let idx = messages.firstIndex(where: { $0.messageId == msg.ackMessageId }) {
-					messages[idx].ackStatus = tracker
-					groupMessages[msg.groupId] = messages
-				}
-			}
+	/// Transport-layer routing ACK path: when a `want_ack` group unicast we sent is confirmed by the
+	/// router, mark that member delivered. This is the reliable per-member delivery signal (the
+	/// app-layer GROUP_ACK is often lost on weak/cross-band return links).
+	func handleRoutingAck(packetId: UInt32, from: UInt32, success: Bool) {
+		guard let info = pendingGroupUnicasts[packetId] else { return }
+		pendingGroupUnicasts.removeValue(forKey: packetId)
+		guard success else { return }
+		markMemberAcked(messageId: info.messageId, groupId: info.groupId, member: info.member, via: "routing-ack")
+	}
+
+	/// Record a member as having received a group message, and refresh the message's ack status (the
+	/// data the UI's per-member delivery indicator renders). Idempotent.
+	private func markMemberAcked(messageId: UInt32, groupId: UInt32, member: UInt32, via: String) {
+		guard var tracker = ackTrackers[messageId] else { return }
+		guard tracker.members.contains(member), !tracker.ackedBy.contains(member) else { return }
+		tracker.ackedBy.append(member)
+		ackTrackers[messageId] = tracker
+		if var messages = groupMessages[groupId], let idx = messages.firstIndex(where: { $0.messageId == messageId }) {
+			messages[idx].ackStatus = tracker
+			groupMessages[groupId] = messages
 		}
-		Logger.mesh.info("ACK from \(msg.memberNodeId.toHex()) for message \(msg.ackMessageId) (\(tracker.ackedBy.count)/\(tracker.members.count))")
+		Logger.mesh.info("Group member \(member.toHex()) delivered msg \(messageId) via \(via) (\(tracker.ackedBy.count)/\(tracker.members.count))")
 		saveState()
 	}
 
@@ -936,6 +953,13 @@ final class GroupMessageService: ObservableObject {
 		meshPacket.channel = UInt32(channelIndex)
 		meshPacket.decoded = dataMessage
 		meshPacket.wantAck = wantAck
+
+		// Track this unicast so a routing ACK can mark the member delivered (per-member delivery UI).
+		if wantAck && to != UInt32(Constants.maximumNodeNum) &&
+			(payload.type == .groupText || payload.type == .groupJoin) {
+			if pendingGroupUnicasts.count > 256 { pendingGroupUnicasts.removeAll() } // safety cap
+			pendingGroupUnicasts[meshPacket.id] = (payload.groupId, payload.messageId, to)
+		}
 
 		var toRadio = ToRadio()
 		toRadio.packet = meshPacket

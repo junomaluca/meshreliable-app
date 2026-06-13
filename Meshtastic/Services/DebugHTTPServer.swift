@@ -209,6 +209,8 @@ final class DebugHTTPServer: @unchecked Sendable {
 		case ("GET", "/ble-writes"):
 			let lines = BLEConnection.debugWriteLog.map { "\"\($0.replacingOccurrences(of: "\"", with: "'"))\"" }.joined(separator: ",")
 			return "[\(lines)]"
+		case ("GET", "/group-acks"):
+			return handleGroupAcks()
 		case ("GET", "/fw-log"):
 			let lines = AccessoryManager.firmwareLogBuffer.map { "\"\($0.replacingOccurrences(of: "\\", with: "/").replacingOccurrences(of: "\"", with: "'"))\"" }.joined(separator: ",")
 			return "[\(lines)]"
@@ -301,6 +303,33 @@ final class DebugHTTPServer: @unchecked Sendable {
 			return "[]"
 		}
 		return json
+	}
+
+	private func handleGroupAcks() -> String {
+		var result = "[]"
+		let semaphore = DispatchSemaphore(value: 0)
+		DispatchQueue.main.async {
+			let service = GroupMessageService.shared
+			var out: [[String: Any]] = []
+			for (msgId, t) in service.ackTrackers {
+				out.append([
+					"messageId": msgId,
+					"groupId": t.groupId,
+					"members": t.members,
+					"ackedBy": t.ackedBy,
+					"allAcked": t.allAcked,
+					"ackedCount": t.ackedBy.count,
+					"memberCount": t.members.count
+				])
+			}
+			if let data = try? JSONSerialization.data(withJSONObject: out),
+			   let json = String(data: data, encoding: .utf8) {
+				result = json
+			}
+			semaphore.signal()
+		}
+		semaphore.wait()
+		return result
 	}
 
 	private func handleGroups() -> String {
